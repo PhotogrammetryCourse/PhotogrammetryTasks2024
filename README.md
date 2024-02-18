@@ -17,5 +17,5 @@
 
 - [Аннотация курса](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/blob/master/slides/phg_00_course_annotation.pdf)
 - [Слайды](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/blob/master/slides)
-- **Записи лекций** - будут выложены позже
+- [Записи лекций](https://www.youtube.com/watch?v=dowgzvj9M6I&list=PL5p-5hHpsHBrtQQptYgT3kdt3Egb5QNci) (публикуются по мере прочтения)
 - [Прошлогодние записи лекций](https://www.youtube.com/watch?v=xXrWsCd580g&list=PL5p-5hHpsHBqFm3CQk6jT0amZjW0_2NMU&index=1)
