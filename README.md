@@ -1,17 +1,16 @@
 В этом репозитории предложены задания курса по Фотограмметрии для студентов МКН/ИТМО/ВШЭ.
 
-[Остальные задания](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/).
+[Остальные задания](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/).
 
 # Задание 2. Сопоставление ключевых точек и подсчет гомографии
 
-[![Build Status](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/actions/workflows/cmake.yml/badge.svg?branch=task02&event=push)](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml/badge.svg?branch=task02&event=push)](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml)
 
 0. Скачать себе ветку task02 и смерджить в нее свою реализацию SIFT
-1. [Пересобрать OpenCV 4.5.1](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/blob/task02/CMakeLists.txt#L19-L31) (добавился новый модуль calib3d)
-2. Выполнить задания ниже (при тестировании Github Actions CI использует GCC 11, поэтому если вы используете фичи свежее чем C++17 - есть риск что не скомпилируется, в таком случае поправьте пожалуйста)
-3. Отправить **Pull-request** с названием```Task02 <Имя> <Фамилия> <Аффиляция>```:
+1. Выполнить задания ниже (при тестировании Github Actions CI использует GCC 11, поэтому если вы используете фичи свежее чем C++17 - есть риск что не скомпилируется, в таком случае поправьте пожалуйста)
+2. Отправить **Pull-request** с названием```Task02 <Имя> <Фамилия> <Аффиляция>```:
 
- - Скопируйте в описание [шаблон](https://raw.githubusercontent.com/PhotogrammetryCourse/PhotogrammetryTasks2023/task02/.github/pull_request_template.md)
+ - Скопируйте в описание [шаблон](https://raw.githubusercontent.com/PhotogrammetryCourse/PhotogrammetryTasks2024/task02/.github/pull_request_template.md)
  - Обязательно отправляйте PR из вашей ветки **task02** (вашего форка) в ветку **task02** (основного репозитория)
  - Перечислите свои мысли по вопросам поднятым в коде и просто появившиеся в процессе выполнения задания (выписывайте их с самого начала в отдельный текстовый файл, в шаблоне предложены некоторые вопросы)
  - Создайте PR
