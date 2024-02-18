@@ -7,7 +7,7 @@
 Задания (даты будущих заданий указаны примерно):
 
 - **12.02** [Задание 1:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task01) Локальные ключевые точки SIFT (детектор и дескриптор).
-- **19.02** Задание 2: Сопоставление ключевых точек и подсчет гомографии.
+- **19.02** [Задание 2:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task02) Сопоставление ключевых точек и подсчет гомографии.
 - **26.02** Задание 3: SFM. Оценка взаимной ориентации и положения камер, построение облака точек.
 - **18.03** Задание 4: SFM. Ceres Solver и Bundle Adjustment.
 - **25.03** Задание 5: Depth Maps. Patch Match.
