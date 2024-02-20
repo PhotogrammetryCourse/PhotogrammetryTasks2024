@@ -16,7 +16,7 @@
 // 3) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.dispatch.cpp (адаптация кода с первой ссылки)
 // 4) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.simd.hpp (адаптация кода с первой ссылки)
 
-#define DEBUG_ENABLE     1
+#define DEBUG_ENABLE     0
 #define DEBUG_PATH       std::string("data/debug/test_sift/debug/")
 
 #define NOCTAVES                    3                    // число октав
@@ -89,9 +89,11 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
 
         #pragma omp parallel for
         for (ptrdiff_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
-            double sigmaCur  = INITIAL_IMG_SIGMA * pow(2.0, octave) * pow(k, layer);
+            double sigmaL0 = INITIAL_IMG_SIGMA * pow(2.0, octave);
+            double sigmaCur = INITIAL_IMG_SIGMA * pow(2.0, octave) * pow(k, layer);
+            double sigma = sqrt(sigmaCur * sigmaCur - sigmaL0 * sigmaL0);
             cv::Mat imgLayer = gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES].clone();
-            cv::GaussianBlur(imgLayer, imgLayer, cv::Size(0, 0), sigmaCur, sigmaCur);
+            cv::GaussianBlur(imgLayer, imgLayer, cv::Size(0, 0), sigma / pow(2.0, octave), sigma / pow(2.0, octave));
 
             gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES + layer] = imgLayer;
         }
