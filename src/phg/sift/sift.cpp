@@ -37,6 +37,7 @@
 #define DESCRIPTOR_SAMPLES_N       4 // 4x4 замера для каждой гистограммы дескриптора (всего гистограмм 4х4) итого 16х16 замеров
 #define DESCRIPTOR_SAMPLE_WINDOW_R 1.0 // минимальный радиус окна в рамках которого строится гистограмма из 8 корзин-направлений (т.е. для каждого из 16 элементов дескриптора), R=1 => 1x1 окно
 
+#define R 10.0
 
 void phg::SIFT::detectAndCompute(const cv::Mat &originalImg, std::vector<cv::KeyPoint> &kps, cv::Mat &desc) {
     // используйте дебаг в файлы как можно больше, это очень удобно и потраченное время окупается крайне сильно,
@@ -218,7 +219,14 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
 #endif
                         // TODO сделать фильтрацию слабых точек по слабому контрасту
                         float contrast = center + dvalue;
-                        if (contrast < contrast_threshold / OCTAVE_NLAYERS) // TODO почему порог контрастности должен уменьшаться при увеличении числа слоев в октаве?
+                        if (fabs(contrast) < contrast_threshold / OCTAVE_NLAYERS) // TODO почему порог контрастности должен уменьшаться при увеличении числа слоев в октаве?
+                            continue;
+
+                        float dxx = DoGs[1].at<float>(j, i + 1) + DoGs[1].at<float>(j, i - 1) - 2 * DoGs[1].at<float>(j, i);
+                        float dyy = DoGs[1].at<float>(j + 1, i) + DoGs[1].at<float>(j - 1, i) - 2 * DoGs[1].at<float>(j, i);
+                        float dxy = (DoGs[1].at<float>(j + 1, i + 1) + DoGs[1].at<float>(j - 1, i - 1)
+                                - DoGs[1].at<float>(j - 1, i + 1) - DoGs[1].at<float>(j + 1, i - 1)) / 4;
+                        if (dxx * dyy - dxy * dxy <= 0 || (dxx + dyy) * (dxx + dyy) * R > (R + 1) * (R + 1) * (dxx * dyy - dxy * dxy))
                             continue;
 
                         kp.pt = cv::Point2f((i + 0.5 + dx) * octave_downscale, (j + 0.5 + dy) * octave_downscale);
