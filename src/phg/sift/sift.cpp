@@ -30,7 +30,7 @@
 
 #define ORIENTATION_NHISTS           36   // число корзин при определении ориентации ключевой точки через гистограммы
 #define ORIENTATION_WINDOW_R         3    // минимальный радиус окна в рамках которого будет выбрана ориентиация (в пикселях), R=3 => 5x5 окно
-#define ORIENTATION_VOTES_PEAK_RATIO 0.80 // 0.8 => если гистограмма какого-то направления получила >= 80% от максимального чиссла голосов - она тоже победила
+#define ORIENTATION_VOTES_PEAK_RATIO 0.8 // 0.8 => если гистограмма какого-то направления получила >= 80% от максимального чиссла голосов - она тоже победила
 
 #define DESCRIPTOR_SIZE            4 // 4x4 гистограммы декскриптора
 #define DESCRIPTOR_NBINS           8 // 8 корзин-направлений в каждой гистограмме дескриптора (4х4 гистограммы, каждая по 8 корзин, итого 4x4x8=128 значений в дескрипторе)
@@ -316,9 +316,11 @@ bool phg::SIFT::buildLocalOrientationHists(const cv::Mat &img, size_t i, size_t 
             rassert(bin < ORIENTATION_NHISTS, 361236315613);
             sum[bin] += magnitude;
 
-            // most trivial
-            sum[(bin + ORIENTATION_NHISTS - 1) % ORIENTATION_NHISTS] += magnitude / 2;
-            sum[(bin + 1) % ORIENTATION_NHISTS] += magnitude / 2;
+            // better than trivial
+            double right_preference = (orientation - ((bin + 0.5) * (360 / ORIENTATION_NHISTS))) / (360 / ORIENTATION_NHISTS);
+            sum[(bin + ORIENTATION_NHISTS - 1) % ORIENTATION_NHISTS] += magnitude * (0.5 - right_preference);
+            sum[(bin + 1) % ORIENTATION_NHISTS] += magnitude * (0.5 + right_preference);
+
             // TODO может быть сгладить получившиеся гистограммы улучшит результат? 
         }
     }
@@ -382,9 +384,11 @@ bool phg::SIFT::buildDescriptor(const cv::Mat &img, float px, float py, double d
                             rassert(bin < DESCRIPTOR_NBINS, 361236315613);
                             sum[bin] += magnitude;
 
-                            // most trivial
-                            sum[(bin + DESCRIPTOR_NBINS - 1) % DESCRIPTOR_NBINS] += magnitude / 2;
-                            sum[(bin + 1) % DESCRIPTOR_NBINS] += magnitude / 2;
+                            // better than trivial
+                            double right_preference = (orientation - ((bin + 0.5) * (360 / DESCRIPTOR_NBINS))) / (360 / DESCRIPTOR_NBINS);
+                            sum[(bin + DESCRIPTOR_NBINS - 1) % DESCRIPTOR_NBINS] += magnitude * (0.5 - right_preference);
+                            sum[(bin + 1) % DESCRIPTOR_NBINS] += magnitude * (0.5 + right_preference);
+
                             // TODO хорошая идея добавить трилинейную интерполяцию как предложено в статье, или хотя бы сэмулировать ее - сгладить получившиеся гистограммы
                         }
                     }
