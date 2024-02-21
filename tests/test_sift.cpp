@@ -118,13 +118,11 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
                 detector->compute(img0, kps0, desc0);
                 detector->compute(img1, kps1, desc1);
             } else if (method == 2) {
-                // TODO remove 'return' and uncomment
-                return;
-//                method_name = "SIFT_MY";
-//                log_prefix = "[SIFT_MY] ";
-//                phg::SIFT mySIFT;
-//                mySIFT.detectAndCompute(img0, kps0, desc0);
-//                mySIFT.detectAndCompute(img1, kps1, desc1);
+                method_name = "SIFT_MY";
+                log_prefix = "[SIFT_MY] ";
+                phg::SIFT mySIFT;
+                mySIFT.detectAndCompute(img0, kps0, desc0);
+                mySIFT.detectAndCompute(img1, kps1, desc1);
             } else {
                 rassert(false, 13532513412); // это не проверка как часть тестирования, это проверка что число итераций в цикле и if-else ветки все еще согласованы и не разошлись
             }
@@ -200,9 +198,13 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
                         // и сверить что расстояние между дескрипторами - это действительно расстояние
                         // между точками в пространстве высокой размерности:
 #if 0
-                        if (i % 100 == 0) {
+                        if (method == 2) {
                             #pragma omp critical
                             {
+                                std::cout << "point (" << kps0[i].pt.x << ", " << (kps0[i].pt.y) << ")" << std::endl;
+                                std::cout << "to point (" << kps1[closest_j].pt.x << ", " << (kps1[closest_j].pt.y) << ")" << std::endl;
+                                std::cout << "size " << kps1[closest_j].size << std::endl;
+                                std::cout << "to size " << kps0[i].size << std::endl;
                                 std::cout << "d0: " << d0 << std::endl;
                                 std::cout << "d1: " << d1 << std::endl;
                                 std::cout << "d1-d0: " << d1-d0 << std::endl;
@@ -217,6 +219,7 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
 #endif
                     }
                 }
+                assert(!std::isnan(desc_dist_sum));
             }
             rassert(n_matched > 0, 2319241421512); // это не проверка как часть тестирования, это проверка что я не набагал и что дальше не будет деления на ноль :)
             double recall = n_matched*1.0 / n_in_bounds;
