@@ -9,6 +9,7 @@
 #include <libutils/rasserts.h>
 
 #include <phg/sift/sift.h>
+#include <omp.h>
 
 #include "utils/test_utils.h"
 
@@ -280,6 +281,7 @@ cv::Mat createTranslationMatrix(double dx, double dy) {
 
 
 TEST (SIFT, MovedTheSameImage) {
+    std::cout << "Threads: " << omp_get_max_threads() << std::endl;
     double minRecall = 0.75;
     evaluateDetection(createTranslationMatrix(0.0, 0.0), minRecall);
 }
