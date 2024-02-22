@@ -423,3 +423,20 @@ TEST (SIFT, HerzJesu19RotateM40) {
     double minRecall = 0.75;
     evaluateDetection(cv::getRotationMatrix2D(cv::Point(jesu19.cols/2, jesu19.rows/2), -angleDegreesClockwise, scale), minRecall, jesu19);
 }
+
+TEST (SIFTPerformance, Performance1) {
+
+    cv::Mat unicorn = cv::imread("data/src/test_sift/unicorn.png");
+    cv::resize(unicorn, unicorn, cv::Size(unicorn.size[1] * 2, unicorn.size[0] * 2));
+
+    phg::SIFT mySIFT = phg::SIFT();
+
+    timer t;
+    for (int32_t i = 0; i < 10; i++) {
+        std::vector<cv::KeyPoint> kps;
+        cv::Mat desc;
+        mySIFT.detectAndCompute(unicorn, kps, desc);
+        t.nextLap();
+    }
+    std::cout << "Time: " << t.lapAvg() << " +- " << t.lapStd() << " s" << std::endl;
+}

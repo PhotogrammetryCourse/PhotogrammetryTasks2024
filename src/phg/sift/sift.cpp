@@ -16,6 +16,8 @@
 // 3) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.dispatch.cpp (адаптация кода с первой ссылки)
 // 4) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.simd.hpp (адаптация кода с первой ссылки)
 
+#define USE_OCV
+
 #define DEBUG_ENABLE     0
 #define DEBUG_PATH       std::string("data/debug/test_sift/debug/")
 
@@ -88,7 +90,9 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
             gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES + layer] = img;
         }
 
+#ifdef USE_OCV
         #pragma omp parallel for
+#endif
         for (ptrdiff_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             double sigmaL0 = INITIAL_IMG_SIGMA * pow(2.0, octave);
             double sigmaCur = INITIAL_IMG_SIGMA * pow(2.0, octave) * pow(k, layer);
@@ -110,7 +114,9 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
     DoGPyramid.resize(NOCTAVES * OCTAVE_DOG_IMAGES);
 
     // строим пирамиду разниц гауссиан слоев (Difference of Gaussian, DoG), т.к. вычитать надо из слоя слой в рамках одной и той же октавы - то есть приятный параллелизм на уровне октав
+#ifdef USE_OCV
     #pragma omp parallel for
+#endif
     for (ptrdiff_t octave = 0; octave < NOCTAVES; ++octave) {
         for (size_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             int prevLayer = layer - 1;
@@ -170,7 +176,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
     std::vector<std::vector<float>> pointsDesc;
 
     // 3.1 Local extrema detection
+#ifdef USE_OCV
     #pragma omp parallel // запустили каждый вычислительный поток процессора
+#endif
     {
         // каждый поток будет складировать свои точки в свой личный вектор (чтобы не было гонок и не были нужны точки синхронизации)
         std::vector<cv::KeyPoint> thread_points;
@@ -184,8 +192,10 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                 const cv::Mat next = DoGPyramid[octave * OCTAVE_DOG_IMAGES + layer + 1];
                 const cv::Mat DoGs[3] = {prev, cur, next};
 
-                // теперь каждый поток обработает свой кусок картинки 
+                // теперь каждый поток обработает свой кусок картинки
+#ifdef USE_OCV
                 #pragma omp for
+#endif
                 for (ptrdiff_t j = 1; j < cur.rows - 1; ++j) {
                     for (ptrdiff_t i = 1; i + 1 < cur.cols; ++i) {
                         bool is_max = true;
@@ -270,7 +280,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
         }
 
         // в критической секции объединяем все массивы детектированных точек
+#ifdef USE_OCV
         #pragma omp critical
+#endif
         {
             keyPoints.insert(keyPoints.end(), thread_points.begin(), thread_points.end());
             pointsDesc.insert(pointsDesc.end(), thread_descriptors.begin(), thread_descriptors.end());
