@@ -15,7 +15,7 @@ else()
     message(FATAL_ERROR "OpenMP not found! You need OpenMP for speedup on multicore CPUs!")
 endif()
 
-set(OpenCV_DIR C:/lib/build_opencv)
+# set(OpenCV_DIR C:/lib/build_opencv)
 find_package(OpenCV 4.5.1 REQUIRED)
 #      Linux:
 # скачайте Source code (opencv-4.5.1.zip) отсюда - https://github.com/opencv/opencv/releases распакуйте и скомпилируйте:
