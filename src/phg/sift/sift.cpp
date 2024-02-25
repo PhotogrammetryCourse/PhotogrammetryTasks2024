@@ -406,7 +406,7 @@ bool phg::SIFT::buildDescriptor(const cv::Mat &img, float px, float py, double d
                                 orientation = 0;
                             }
                             orientation = orientation * 180.0 / M_PI;
-                            orientation = (orientation + 90.0);
+                            orientation = (orientation + 90.0 - angle);
                             if (orientation <  0.0)   orientation += 360.0;
                             if (orientation >= 360.0) orientation -= 360.0;
 
