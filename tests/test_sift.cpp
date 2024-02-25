@@ -419,7 +419,7 @@ TEST (SIFT, Rotate30Scale75) {
 }
 
 TEST (SIFT, HerzJesu19RotateM40) {
-    cv::Mat jesu19 = cv::imread("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/src/test_sift/herzjesu19.png");
+    cv::Mat jesu19 = cv::imread("data/src/test_sift/herzjesu19.png");
 
     ASSERT_FALSE(jesu19.empty()); // проверка что картинка была загружена
     // убедитесь что рабочая папка (Edit Configurations...->Working directory) указывает на корневую папку проекта
