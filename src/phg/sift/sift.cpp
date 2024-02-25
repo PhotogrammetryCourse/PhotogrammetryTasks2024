@@ -406,14 +406,15 @@ bool phg::SIFT::buildDescriptor(const cv::Mat &img, float px, float py, double d
                                 orientation = 0;
                             }
                             orientation = orientation * 180.0 / M_PI;
-                            orientation = (orientation + 90.0 - angle);
+                            orientation = (orientation + 90.0 + angle);
                             if (orientation <  0.0)   orientation += 360.0;
                             if (orientation >= 360.0) orientation -= 360.0;
 
                             // TODO за счет чего этот вклад будет сравниваться с этим же вкладом даже если эта картинка будет повернута? что нужно сделать с ориентацией каждого градиента из окрестности этой ключевой точки?
-                            // За счет того, что мы сориенируем нашу окрестность на такой же угол через матрицу поворота relativeShiftRotation
+                            // За счет того, что внесем поправку в угол orientation градиента на угол ориентации окрестности ключевой точки
+                            // на изначальной и на преобразованной картинке
 
-                            rassert(orientation >= 0.0 && orientation < 360.0, orientation);
+                            rassert(orientation >= 0.0 && orientation < 360.0, 5361615612);
                             static_assert(360 % DESCRIPTOR_NBINS == 0, "Inappropriate bins number!");
                             int bin_range_size = 360 / DESCRIPTOR_NBINS;
                             size_t bin = static_cast<int>(orientation) / bin_range_size;
