@@ -1,0 +1,335 @@
+C:\Windows\system32\wsl.exe --distribution Ubuntu-22.04 --exec /bin/bash -c "export GTEST_FILTER='*' && cd /mnt/c/Users/metametamoon/projects/PhotogrammetryTasks2024-fork && /mnt/c/Users/metametamoon/projects/PhotogrammetryTasks2024-fork/cmake-build-release-wsl-gcc-11/test_sift --gtest_color=no"
+Testing started at 16:10 ...
+Running main() from /mnt/c/Users/metametamoon/projects/PhotogrammetryTasks2024-fork/libs/3rdparty/libgtest/googletest/src/gtest_main.cc
+Threads: 12
+[ORB_OCV] Points detected: 500 -> 500 (in 0.015564 sec)
+[ORB_OCV] 493/500 (recall=0.986) with average error=0.0520289
+[ORB_OCV] average size ratio between matched points: 1.00185
+[ORB_OCV] average angle difference between matched points: 0.145135 degrees
+[ORB_OCV] average descriptor distance between matched points: 8.8073 (random distance: 127.325) => differentiability=0.0691721
+[SIFTOCV] Points detected: 453 -> 465 (in 0.074242 sec)
+[SIFTOCV] 436/453 (recall=0.962472) with average error=0.0435686
+[SIFTOCV] average size ratio between matched points: 0.998252
+[SIFTOCV] average angle difference between matched points: -4.7478 degrees
+[SIFTOCV] average descriptor distance between matched points: 90.3355 (random distance: 523.008) => differentiability=0.172723
+[SIFT_MY] Points detected: 835 -> 826 (in 0.581454 sec)
+[SIFT_MY] 827/835 (recall=0.990419) with average error=0.0500642
+[SIFT_MY] average size ratio between matched points: 1.0011
+[SIFT_MY] average angle difference between matched points: -7.78718 degrees
+[SIFT_MY] average descriptor distance between matched points: 415.718 (random distance: 1682.23) => differentiability=0.247124
+[ORB_OCV] Points detected: 500 -> 500 (in 0.01174 sec)
+[ORB_OCV] 471/500 (recall=0.942) with average error=0.502929
+[ORB_OCV] average size ratio between matched points: 0.992385
+[ORB_OCV] average angle difference between matched points: -0.67963 degrees
+[ORB_OCV] average descriptor distance between matched points: 31.7219 (random distance: 127.724) => differentiability=0.248363
+[SIFTOCV] Points detected: 453 -> 447 (in 0.079563 sec)
+[SIFTOCV] 421/442 (recall=0.952489) with average error=0.107924
+[SIFTOCV] average size ratio between matched points: 1.01134
+[SIFTOCV] average angle difference between matched points: -3.58242 degrees
+[SIFTOCV] average descriptor distance between matched points: 90.1555 (random distance: 527.86) => differentiability=0.170794
+[SIFT_MY] Points detected: 835 -> 797 (in 0.607712 sec)
+[SIFT_MY] 785/787 (recall=0.997459) with average error=0.0430289
+[SIFT_MY] average size ratio between matched points: 0.998229
+[SIFT_MY] average angle difference between matched points: -8.57325 degrees
+[SIFT_MY] average descriptor distance between matched points: 410.057 (random distance: 1562.62) => differentiability=0.262417
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011552 sec)
+[ORB_OCV] 466/498 (recall=0.935743) with average error=0.485198
+[ORB_OCV] average size ratio between matched points: 1.0061
+[ORB_OCV] average angle difference between matched points: -2.01597 degrees
+[ORB_OCV] average descriptor distance between matched points: 30.279 (random distance: 126.457) => differentiability=0.239441
+[SIFTOCV] Points detected: 453 -> 447 (in 0.063884 sec)
+[SIFTOCV] 417/441 (recall=0.945578) with average error=0.0855277
+[SIFTOCV] average size ratio between matched points: 0.997577
+[SIFTOCV] average angle difference between matched points: -6.43682 degrees
+[SIFTOCV] average descriptor distance between matched points: 97.5722 (random distance: 523.97) => differentiability=0.186217
+[SIFT_MY] Points detected: 835 -> 751 (in 0.644185 sec)
+[SIFT_MY] 745/757 (recall=0.984148) with average error=0.050384
+[SIFT_MY] average size ratio between matched points: 0.999516
+[SIFT_MY] average angle difference between matched points: -10.7785 degrees
+[SIFT_MY] average descriptor distance between matched points: 444.944 (random distance: 1688.34) => differentiability=0.26354
+[ORB_OCV] Points detected: 500 -> 500 (in 0.013262 sec)
+[ORB_OCV] 460/497 (recall=0.925553) with average error=0.710802
+[ORB_OCV] average size ratio between matched points: 1.01167
+[ORB_OCV] average angle difference between matched points: 0.857323 degrees
+[ORB_OCV] average descriptor distance between matched points: 42.9087 (random distance: 123.602) => differentiability=0.347152
+[SIFTOCV] Points detected: 453 -> 504 (in 0.0676 sec)
+[SIFTOCV] 369/445 (recall=0.829213) with average error=0.396924
+[SIFTOCV] average size ratio between matched points: 1.04453
+[SIFTOCV] average angle difference between matched points: -3.55702 degrees
+[SIFTOCV] average descriptor distance between matched points: 153.011 (random distance: 526.21) => differentiability=0.290779
+[SIFT_MY] Points detected: 835 -> 619 (in 0.608145 sec)
+[SIFT_MY] 642/782 (recall=0.820972) with average error=0.470176
+[SIFT_MY] average size ratio between matched points: 1.04139
+[SIFT_MY] average angle difference between matched points: -5.51402 degrees
+[SIFT_MY] average descriptor distance between matched points: 957.19 (random distance: 1738.67) => differentiability=0.550531
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011481 sec)
+[ORB_OCV] 442/478 (recall=0.924686) with average error=0.648609
+[ORB_OCV] average size ratio between matched points: 0.971097
+[ORB_OCV] average angle difference between matched points: -1.00358 degrees
+[ORB_OCV] average descriptor distance between matched points: 42.586 (random distance: 125.477) => differentiability=0.339392
+[SIFTOCV] Points detected: 453 -> 505 (in 0.064145 sec)
+[SIFTOCV] 377/439 (recall=0.85877) with average error=0.44313
+[SIFTOCV] average size ratio between matched points: 1.04998
+[SIFTOCV] average angle difference between matched points: -4.70645 degrees
+[SIFTOCV] average descriptor distance between matched points: 166.33 (random distance: 523.378) => differentiability=0.3178
+[SIFT_MY] Points detected: 835 -> 623 (in 0.544477 sec)
+[SIFT_MY] 652/791 (recall=0.824273) with average error=0.514132
+[SIFT_MY] average size ratio between matched points: 1.04232
+[SIFT_MY] average angle difference between matched points: -4.1411 degrees
+[SIFT_MY] average descriptor distance between matched points: 878.573 (random distance: 1556.03) => differentiability=0.564624
+[ORB_OCV] Points detected: 500 -> 500 (in 0.013762 sec)
+[ORB_OCV] 475/500 (recall=0.95) with average error=0.932881
+[ORB_OCV] average size ratio between matched points: 1.00527
+[ORB_OCV] average angle difference between matched points: 8.46336 degrees
+[ORB_OCV] average descriptor distance between matched points: 56.6295 (random distance: 122.783) => differentiability=0.461215
+[SIFTOCV] Points detected: 453 -> 533 (in 0.071 sec)
+[SIFTOCV] 369/451 (recall=0.818182) with average error=0.472593
+[SIFTOCV] average size ratio between matched points: 1.04212
+[SIFTOCV] average angle difference between matched points: -1.87952 degrees
+[SIFTOCV] average descriptor distance between matched points: 176.196 (random distance: 521.969) => differentiability=0.337561
+[SIFT_MY] Points detected: 835 -> 613 (in 0.54817 sec)
+[SIFT_MY] 621/802 (recall=0.774314) with average error=0.550827
+[SIFT_MY] average size ratio between matched points: 1.02788
+[SIFT_MY] average angle difference between matched points: -7.77778 degrees
+[SIFT_MY] average descriptor distance between matched points: 990.639 (random distance: 1731.38) => differentiability=0.572169
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011518 sec)
+[ORB_OCV] 456/491 (recall=0.928717) with average error=0.860867
+[ORB_OCV] average size ratio between matched points: 0.968872
+[ORB_OCV] average angle difference between matched points: 19.4252 degrees
+[ORB_OCV] average descriptor distance between matched points: 58.3224 (random distance: 125.59) => differentiability=0.464387
+[SIFTOCV] Points detected: 453 -> 537 (in 0.062421 sec)
+[SIFTOCV] 355/443 (recall=0.801354) with average error=0.507026
+[SIFTOCV] average size ratio between matched points: 1.06094
+[SIFTOCV] average angle difference between matched points: -0.883313 degrees
+[SIFTOCV] average descriptor distance between matched points: 180.204 (random distance: 526.309) => differentiability=0.342392
+[SIFT_MY] Points detected: 835 -> 571 (in 0.572698 sec)
+[SIFT_MY] 596/776 (recall=0.768041) with average error=0.690033
+[SIFT_MY] average size ratio between matched points: 1.03766
+[SIFT_MY] average angle difference between matched points: -4.51342 degrees
+[SIFT_MY] average descriptor distance between matched points: 982.849 (random distance: 1675.13) => differentiability=0.586731
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011558 sec)
+[ORB_OCV] 446/479 (recall=0.931106) with average error=0.954674
+[ORB_OCV] average size ratio between matched points: 0.971588
+[ORB_OCV] average angle difference between matched points: 25.313 degrees
+[ORB_OCV] average descriptor distance between matched points: 56.7668 (random distance: 125.177) => differentiability=0.453492
+[SIFTOCV] Points detected: 453 -> 511 (in 0.062789 sec)
+[SIFTOCV] 361/441 (recall=0.818594) with average error=0.629674
+[SIFTOCV] average size ratio between matched points: 1.05297
+[SIFTOCV] average angle difference between matched points: 4.7407 degrees
+[SIFTOCV] average descriptor distance between matched points: 195.638 (random distance: 526.907) => differentiability=0.371295
+[SIFT_MY] Points detected: 835 -> 557 (in 0.573725 sec)
+[SIFT_MY] 576/755 (recall=0.762914) with average error=0.721744
+[SIFT_MY] average size ratio between matched points: 1.03449
+[SIFT_MY] average angle difference between matched points: 3.14236 degrees
+[SIFT_MY] average descriptor distance between matched points: 1020.34 (random distance: 1563.22) => differentiability=0.652719
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011626 sec)
+[ORB_OCV] 445/475 (recall=0.936842) with average error=0.927974
+[ORB_OCV] average size ratio between matched points: 0.992927
+[ORB_OCV] average angle difference between matched points: 35.1473 degrees
+[ORB_OCV] average descriptor distance between matched points: 57.0315 (random distance: 125.292) => differentiability=0.455188
+[SIFTOCV] Points detected: 453 -> 470 (in 0.065184 sec)
+[SIFTOCV] 335/436 (recall=0.768349) with average error=0.722947
+[SIFTOCV] average size ratio between matched points: 1.07134
+[SIFTOCV] average angle difference between matched points: 12.1292 degrees
+[SIFTOCV] average descriptor distance between matched points: 189.937 (random distance: 524.78) => differentiability=0.361937
+[SIFT_MY] Points detected: 835 -> 552 (in 0.598444 sec)
+[SIFT_MY] 563/741 (recall=0.759784) with average error=0.805839
+[SIFT_MY] average size ratio between matched points: 1.03864
+[SIFT_MY] average angle difference between matched points: 7.77975 degrees
+[SIFT_MY] average descriptor distance between matched points: 1081.68 (random distance: 1548.19) => differentiability=0.698677
+[ORB_OCV] Points detected: 500 -> 500 (in 0.0116 sec)
+[ORB_OCV] 427/475 (recall=0.898947) with average error=0.913293
+[ORB_OCV] average size ratio between matched points: 0.999695
+[ORB_OCV] average angle difference between matched points: 40.7936 degrees
+[ORB_OCV] average descriptor distance between matched points: 57.0351 (random distance: 126.834) => differentiability=0.449684
+[SIFTOCV] Points detected: 453 -> 523 (in 0.063869 sec)
+[SIFTOCV] 354/431 (recall=0.821346) with average error=0.708972
+[SIFTOCV] average size ratio between matched points: 1.0578
+[SIFTOCV] average angle difference between matched points: 21.2252 degrees
+[SIFTOCV] average descriptor distance between matched points: 193.048 (random distance: 528.943) => differentiability=0.364969
+[SIFT_MY] Points detected: 835 -> 519 (in 0.542265 sec)
+[SIFT_MY] 562/740 (recall=0.759459) with average error=0.889708
+[SIFT_MY] average size ratio between matched points: 1.04735
+[SIFT_MY] average angle difference between matched points: 15.9075 degrees
+[SIFT_MY] average descriptor distance between matched points: 1056.57 (random distance: 1693.9) => differentiability=0.623749
+[ORB_OCV] Points detected: 500 -> 500 (in 0.012303 sec)
+[ORB_OCV] 406/475 (recall=0.854737) with average error=0.794018
+[ORB_OCV] average size ratio between matched points: 0.926186
+[ORB_OCV] average angle difference between matched points: 81.2045 degrees
+[ORB_OCV] average descriptor distance between matched points: 52.2069 (random distance: 126.239) => differentiability=0.413556
+[SIFTOCV] Points detected: 453 -> 429 (in 0.063504 sec)
+[SIFTOCV] 397/428 (recall=0.92757) with average error=0.597669
+[SIFTOCV] average size ratio between matched points: 0.994223
+[SIFTOCV] average angle difference between matched points: 68.2509 degrees
+[SIFTOCV] average descriptor distance between matched points: 109.39 (random distance: 522.253) => differentiability=0.209459
+[SIFT_MY] Points detected: 835 -> 735 (in 0.625244 sec)
+[SIFT_MY] 713/724 (recall=0.984807) with average error=1.02309
+[SIFT_MY] average size ratio between matched points: 1.00083
+[SIFT_MY] average angle difference between matched points: 66.3815 degrees
+[SIFT_MY] average descriptor distance between matched points: 411.473 (random distance: 1593.81) => differentiability=0.25817
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011266 sec)
+[ORB_OCV] 463/500 (recall=0.926) with average error=0.927987
+[ORB_OCV] average size ratio between matched points: 0.829127
+[ORB_OCV] average angle difference between matched points: 2.9143 degrees
+[ORB_OCV] average descriptor distance between matched points: 89.7322 (random distance: 124.84) => differentiability=0.718776
+[SIFTOCV] Points detected: 453 -> 191 (in 0.068133 sec)
+[SIFTOCV] 235/453 (recall=0.518764) with average error=1.81213
+[SIFTOCV] average size ratio between matched points: 0.90594
+[SIFTOCV] average angle difference between matched points: -0.218442 degrees
+[SIFTOCV] average descriptor distance between matched points: 362.817 (random distance: 526.31) => differentiability=0.68936
+[SIFT_MY] Points detected: 835 -> 416 (in 0.5361 sec)
+[SIFT_MY] 583/835 (recall=0.698204) with average error=2.03491
+[SIFT_MY] average size ratio between matched points: 0.988837
+[SIFT_MY] average angle difference between matched points: -8.90223 degrees
+[SIFT_MY] average descriptor distance between matched points: 1503 (random distance: 1737.79) => differentiability=0.864895
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011243 sec)
+[ORB_OCV] 488/500 (recall=0.976) with average error=0.902066
+[ORB_OCV] average size ratio between matched points: 0.884398
+[ORB_OCV] average angle difference between matched points: 1.14689 degrees
+[ORB_OCV] average descriptor distance between matched points: 70.2889 (random distance: 124.695) => differentiability=0.563688
+[SIFTOCV] Points detected: 453 -> 335 (in 0.062034 sec)
+[SIFTOCV] 307/453 (recall=0.677704) with average error=1.1649
+[SIFTOCV] average size ratio between matched points: 0.92551
+[SIFTOCV] average angle difference between matched points: -8.88537 degrees
+[SIFTOCV] average descriptor distance between matched points: 272.272 (random distance: 530.603) => differentiability=0.513137
+[SIFT_MY] Points detected: 835 -> 387 (in 0.567504 sec)
+[SIFT_MY] 478/835 (recall=0.572455) with average error=1.36848
+[SIFT_MY] average size ratio between matched points: 0.948612
+[SIFT_MY] average angle difference between matched points: -1.56904 degrees
+[SIFT_MY] average descriptor distance between matched points: 1329.53 (random distance: 1842.41) => differentiability=0.721623
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011564 sec)
+[ORB_OCV] 489/500 (recall=0.978) with average error=0.823308
+[ORB_OCV] average size ratio between matched points: 0.970324
+[ORB_OCV] average angle difference between matched points: -0.183516 degrees
+[ORB_OCV] average descriptor distance between matched points: 60.3333 (random distance: 125.059) => differentiability=0.482438
+[SIFTOCV] Points detected: 453 -> 469 (in 0.063379 sec)
+[SIFTOCV] 354/453 (recall=0.781457) with average error=0.59984
+[SIFTOCV] average size ratio between matched points: 1.00052
+[SIFTOCV] average angle difference between matched points: -4.5203 degrees
+[SIFTOCV] average descriptor distance between matched points: 193.204 (random distance: 523.29) => differentiability=0.369209
+[SIFT_MY] Points detected: 835 -> 553 (in 0.516744 sec)
+[SIFT_MY] 579/835 (recall=0.693413) with average error=0.744571
+[SIFT_MY] average size ratio between matched points: 1.0003
+[SIFT_MY] average angle difference between matched points: -6.35579 degrees
+[SIFT_MY] average descriptor distance between matched points: 1022.47 (random distance: 1737.54) => differentiability=0.58846
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011708 sec)
+[ORB_OCV] 462/500 (recall=0.924) with average error=0.912118
+[ORB_OCV] average size ratio between matched points: 1.02967
+[ORB_OCV] average angle difference between matched points: -0.905967 degrees
+[ORB_OCV] average descriptor distance between matched points: 59.7468 (random distance: 125.225) => differentiability=0.477115
+[SIFTOCV] Points detected: 453 -> 600 (in 0.066117 sec)
+[SIFTOCV] 349/434 (recall=0.804147) with average error=0.534994
+[SIFTOCV] average size ratio between matched points: 1.1646
+[SIFTOCV] average angle difference between matched points: -4.57053 degrees
+[SIFTOCV] average descriptor distance between matched points: 182.986 (random distance: 530.751) => differentiability=0.344769
+[SIFT_MY] Points detected: 835 -> 617 (in 0.556882 sec)
+[SIFT_MY] 612/765 (recall=0.8) with average error=0.499861
+[SIFT_MY] average size ratio between matched points: 1.07048
+[SIFT_MY] average angle difference between matched points: -5.35948 degrees
+[SIFT_MY] average descriptor distance between matched points: 838.066 (random distance: 1525.63) => differentiability=0.549325
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011631 sec)
+[ORB_OCV] 400/475 (recall=0.842105) with average error=1.02537
+[ORB_OCV] average size ratio between matched points: 1.10237
+[ORB_OCV] average angle difference between matched points: -4.78444 degrees
+[ORB_OCV] average descriptor distance between matched points: 67.4875 (random distance: 126.4) => differentiability=0.53392
+[SIFTOCV] Points detected: 453 -> 705 (in 0.067188 sec)
+[SIFTOCV] 324/409 (recall=0.792176) with average error=0.534364
+[SIFTOCV] average size ratio between matched points: 1.36874
+[SIFTOCV] average angle difference between matched points: -4.48225 degrees
+[SIFTOCV] average descriptor distance between matched points: 173.002 (random distance: 530.946) => differentiability=0.325837
+[SIFT_MY] Points detected: 835 -> 628 (in 0.550731 sec)
+[SIFT_MY] 481/652 (recall=0.73773) with average error=0.519893
+[SIFT_MY] average size ratio between matched points: 1.18653
+[SIFT_MY] average angle difference between matched points: -5.67568 degrees
+[SIFT_MY] average descriptor distance between matched points: 866.12 (random distance: 1283.24) => differentiability=0.674949
+[ORB_OCV] Points detected: 500 -> 500 (in 0.012037 sec)
+[ORB_OCV] 325/445 (recall=0.730337) with average error=1.18695
+[ORB_OCV] average size ratio between matched points: 1.16446
+[ORB_OCV] average angle difference between matched points: -1.92861 degrees
+[ORB_OCV] average descriptor distance between matched points: 75.4954 (random distance: 125.905) => differentiability=0.599624
+[SIFTOCV] Points detected: 453 -> 796 (in 0.067034 sec)
+[SIFTOCV] 283/387 (recall=0.731266) with average error=0.48326
+[SIFTOCV] average size ratio between matched points: 1.57659
+[SIFTOCV] average angle difference between matched points: -7.53255 degrees
+[SIFTOCV] average descriptor distance between matched points: 170.593 (random distance: 533.13) => differentiability=0.319983
+[SIFT_MY] Points detected: 835 -> 694 (in 0.627673 sec)
+[SIFT_MY] 400/603 (recall=0.66335) with average error=0.792636
+[SIFT_MY] average size ratio between matched points: 1.27584
+[SIFT_MY] average angle difference between matched points: -6.65 degrees
+[SIFT_MY] average descriptor distance between matched points: 923.836 (random distance: 1186.42) => differentiability=0.778678
+[ORB_OCV] Points detected: 500 -> 500 (in 0.013623 sec)
+[ORB_OCV] 235/380 (recall=0.618421) with average error=1.3217
+[ORB_OCV] average size ratio between matched points: 1.25586
+[ORB_OCV] average angle difference between matched points: 4.13008 degrees
+[ORB_OCV] average descriptor distance between matched points: 84.1617 (random distance: 124.894) => differentiability=0.673867
+[SIFTOCV] Points detected: 453 -> 860 (in 0.069841 sec)
+[SIFTOCV] 273/354 (recall=0.771186) with average error=0.549137
+[SIFTOCV] average size ratio between matched points: 1.80138
+[SIFTOCV] average angle difference between matched points: -1.28444 degrees
+[SIFTOCV] average descriptor distance between matched points: 176.811 (random distance: 520.652) => differentiability=0.339596
+[SIFT_MY] Points detected: 835 -> 630 (in 0.580141 sec)
+[SIFT_MY] 273/535 (recall=0.51028) with average error=0.922154
+[SIFT_MY] average size ratio between matched points: 1.38202
+[SIFT_MY] average angle difference between matched points: -10.3297 degrees
+[SIFT_MY] average descriptor distance between matched points: 906.865 (random distance: 1157.93) => differentiability=0.783179
+[ORB_OCV] Points detected: 500 -> 500 (in 0.012082 sec)
+[ORB_OCV] 174/333 (recall=0.522523) with average error=1.36043
+[ORB_OCV] average size ratio between matched points: 1.34374
+[ORB_OCV] average angle difference between matched points: -3.78969 degrees
+[ORB_OCV] average descriptor distance between matched points: 86.1954 (random distance: 126.011) => differentiability=0.684028
+[SIFTOCV] Points detected: 453 -> 811 (in 0.065777 sec)
+[SIFTOCV] 250/324 (recall=0.771605) with average error=0.545408
+[SIFTOCV] average size ratio between matched points: 2.04147
+[SIFTOCV] average angle difference between matched points: -8.163 degrees
+[SIFTOCV] average descriptor distance between matched points: 150.935 (random distance: 525.969) => differentiability=0.286966
+[SIFT_MY] Points detected: 835 -> 779 (in 0.527386 sec)
+[SIFT_MY] 220/485 (recall=0.453608) with average error=1.40168
+[SIFT_MY] average size ratio between matched points: 1.35014
+[SIFT_MY] average angle difference between matched points: -20.4091 degrees
+[SIFT_MY] average descriptor distance between matched points: 958.791 (random distance: 1082.73) => differentiability=0.885532
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011492 sec)
+[ORB_OCV] 486/500 (recall=0.972) with average error=0.862656
+[ORB_OCV] average size ratio between matched points: 1.00909
+[ORB_OCV] average angle difference between matched points: 12.1602 degrees
+[ORB_OCV] average descriptor distance between matched points: 61.9033 (random distance: 126.477) => differentiability=0.489442
+[SIFTOCV] Points detected: 453 -> 464 (in 0.064731 sec)
+[SIFTOCV] 351/453 (recall=0.774834) with average error=0.660494
+[SIFTOCV] average size ratio between matched points: 0.970697
+[SIFTOCV] average angle difference between matched points: 0.36928 degrees
+[SIFTOCV] average descriptor distance between matched points: 210.278 (random distance: 528.178) => differentiability=0.39812
+[SIFT_MY] Points detected: 835 -> 539 (in 0.564413 sec)
+[SIFT_MY] 589/833 (recall=0.707083) with average error=0.740134
+[SIFT_MY] average size ratio between matched points: 0.998127
+[SIFT_MY] average angle difference between matched points: -4.05772 degrees
+[SIFT_MY] average descriptor distance between matched points: 1060.02 (random distance: 1703.98) => differentiability=0.622084
+[ORB_OCV] Points detected: 500 -> 500 (in 0.011457 sec)
+[ORB_OCV] 471/500 (recall=0.942) with average error=0.873322
+[ORB_OCV] average size ratio between matched points: 0.882831
+[ORB_OCV] average angle difference between matched points: 32.7295 degrees
+[ORB_OCV] average descriptor distance between matched points: 68.9915 (random distance: 123.987) => differentiability=0.55644
+[SIFTOCV] Points detected: 453 -> 373 (in 0.065885 sec)
+[SIFTOCV] 318/453 (recall=0.701987) with average error=0.961622
+[SIFTOCV] average size ratio between matched points: 0.958296
+[SIFTOCV] average angle difference between matched points: 6.75176 degrees
+[SIFTOCV] average descriptor distance between matched points: 241.741 (random distance: 528.552) => differentiability=0.457364
+[SIFT_MY] Points detected: 835 -> 429 (in 0.677004 sec)
+[SIFT_MY] 487/834 (recall=0.583933) with average error=1.25357
+[SIFT_MY] average size ratio between matched points: 0.960918
+[SIFT_MY] average angle difference between matched points: 6.75565 degrees
+[SIFT_MY] average descriptor distance between matched points: 1364.11 (random distance: 1841.63) => differentiability=0.74071
+[ORB_OCV] Points detected: 500 -> 500 (in 0.229302 sec)
+[ORB_OCV] 494/500 (recall=0.988) with average error=1.25431
+[ORB_OCV] average size ratio between matched points: 1.00708
+[ORB_OCV] average angle difference between matched points: -36.7101 degrees
+[ORB_OCV] average descriptor distance between matched points: 48.3603 (random distance: 121.69) => differentiability=0.397405
+[SIFTOCV] Points detected: 3154 -> 2639 (in 2.37662 sec)
+[SIFTOCV] 2513/2588 (recall=0.97102) with average error=2.59085
+[SIFTOCV] average size ratio between matched points: 1.07519
+[SIFTOCV] average angle difference between matched points: -21.3234 degrees
+[SIFTOCV] average descriptor distance between matched points: 188.891 (random distance: 524.107) => differentiability=0.360407
+[SIFT_MY] Points detected: 1667 -> 1089 (in 6.10473 sec)
+[SIFT_MY] 1049/1210 (recall=0.866942) with average error=3.72226
+[SIFT_MY] average size ratio between matched points: 1.01699
+[SIFT_MY] average angle difference between matched points: -2.88847 degrees
+[SIFT_MY] average descriptor distance between matched points: 342.028 (random distance: 599.758) => differentiability=0.570277
+Process finished with exit code 0

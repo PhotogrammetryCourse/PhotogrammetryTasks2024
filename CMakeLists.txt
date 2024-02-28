@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
 add_subdirectory(libs)
 
 project(Photogrammetry)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # OpenMP позволит распараллеливать циклы на все ядра процессора простыми директивами
 find_package(OpenMP)
