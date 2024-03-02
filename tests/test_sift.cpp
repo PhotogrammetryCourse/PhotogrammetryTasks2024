@@ -118,13 +118,11 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
                 detector->compute(img0, kps0, desc0);
                 detector->compute(img1, kps1, desc1);
             } else if (method == 2) {
-                // TODO remove 'return' and uncomment
-                return;
-//                method_name = "SIFT_MY";
-//                log_prefix = "[SIFT_MY] ";
-//                phg::SIFT mySIFT;
-//                mySIFT.detectAndCompute(img0, kps0, desc0);
-//                mySIFT.detectAndCompute(img1, kps1, desc1);
+                method_name = "SIFT_MY";
+                log_prefix = "[SIFT_MY] ";
+                phg::SIFT mySIFT(0.8);
+                mySIFT.detectAndCompute(img0, kps0, desc0);
+                mySIFT.detectAndCompute(img1, kps1, desc1);
             } else {
                 rassert(false, 13532513412); // это не проверка как часть тестирования, это проверка что число итераций в цикле и if-else ветки все еще согласованы и не разошлись
             }
@@ -226,6 +224,12 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
             if (angle_diff_sum != 0.0) {
                 std::cout << log_prefix << "average angle difference between matched points: " << (angle_diff_sum / n_matched) << " degrees" << std::endl;
                 // TODO почему SIFT менее точно угадывает средний угол отклонения? изменяется ли ситуация если выкрутить параметр ORIENTATION_VOTES_PEAK_RATIO=0.999? почему?
+                // Потому что мы ограничены тем как именно мы считаем угол в данном алгоритме.  
+                // Мы приравниваем все углы в бине и даже с учетом приближения параболой угол нельзя посчитать точно
+                // Так, увеличение ORIENTATION_NHISTS до 72 улучшило качество определения угла во всех преобразованиях 
+                // с поворотом (не всегда значительно, но местами до 10 градусов)
+                // При этом ORIENTATION_VOTES_PEAK_RATIO=0.999 уменьшит количество детектируемых ключевых точек, при этом не повлияет 
+                // на точность определения угла
             }
             if (desc_dist_sum != 0.0 && desc_rand_dist_sum != 0.0) {
                 std::cout << log_prefix << "average descriptor distance between matched points: " << (desc_dist_sum / n_matched) << " (random distance: " << (desc_rand_dist_sum / n_matched) << ") => differentiability=" << (desc_dist_sum / desc_rand_dist_sum) << std::endl;
@@ -259,6 +263,7 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
                 cv::imshow("Red thick circles - not matched", result);
                 cv::waitKey();
             }
+            std::cout << '\n';
         }
     }
 }
