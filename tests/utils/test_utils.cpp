@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 
 #include <opencv2/core.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <libutils/rasserts.h>
 
@@ -37,4 +39,18 @@ std::string getTestName() {
 
 std::string getTestSuiteName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name();
+}
+
+void drawMatches(const cv::Mat &img1,
+                 const cv::Mat &img2,
+                 const std::vector<cv::KeyPoint> &keypoints1,
+                 const std::vector<cv::KeyPoint> &keypoints2,
+                 const std::vector<cv::DMatch> &matches,
+                 const std::string &path)
+{
+    cv::Mat img_matches;
+    drawMatches( img1, keypoints1, img2, keypoints2, matches, img_matches, cv::Scalar::all(-1),
+                 cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+
+    cv::imwrite(path, img_matches);
 }
