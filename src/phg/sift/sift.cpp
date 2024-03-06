@@ -8,6 +8,8 @@
 #include <libutils/rasserts.h>
 #include <fstream>
 
+#include <chrono>
+
 // Ссылки:
 // [lowe04] - Distinctive Image Features from Scale-Invariant Keypoints, David G. Lowe, 2004
 //
@@ -116,6 +118,22 @@ double compute_orientation(const cv::Mat &img, size_t x, size_t y) {
     return orientation;
 }
 
+double compute_orientation(const cv::Mat &img, size_t x, size_t y, double angle) {
+    double orientation = atan2((img.at<float>(y + 1, x) - img.at<float>(y - 1, x)),
+                               (img.at<float>(y, x + 1) - img.at<float>(y, x - 1)));
+    orientation = orientation * 180.0 / M_PI;
+    orientation = (orientation + 90.0);
+    orientation -= angle;
+    while (orientation < 0.0)
+    {
+        orientation += 360.0;
+    }
+    while (orientation >= 360.0){
+        orientation -= 360.0;
+    }
+    return orientation;
+}
+
 cv::Mat normalize_matrix(const cv::Mat &img) {
     float max = -1000;
     float min = 1000;
@@ -183,7 +201,6 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
     gaussianPyramid.resize(NOCTAVES * OCTAVE_GAUSSIAN_IMAGES);
 
     const double k = pow(2.0, 1.0 / OCTAVE_NLAYERS); // [lowe04] k = 2^{1/s} а у нас s=OCTAVE_NLAYERS
-
     // строим пирамиду гауссовых размытий картинки
     for (size_t octave = 0; octave < NOCTAVES; ++octave) {
         if (octave == 0) {
@@ -245,7 +262,6 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
             }
         }
     }
-
     for (size_t octave = 0; octave < NOCTAVES; ++octave) {
         for (size_t layer = 0; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             double sigmaCur = INITIAL_IMG_SIGMA * pow(2.0, octave) * pow(k, layer);
@@ -328,10 +344,11 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                                              const std::vector<cv::Mat> &DoGPyramid,
                                              std::vector<cv::KeyPoint> &keyPoints, cv::Mat &desc) {
     std::vector<std::vector<float>> pointsDesc;
-//    std::mutex mtx;
 
     // 3.1 Local extrema detection
-//    #pragma omp parallel// запустили каждый вычислительный поток процессора
+    auto start = std::chrono::high_resolution_clock::now();
+
+    #pragma omp parallel// запустили каждый вычислительный поток процессора
     {
         // каждый поток будет складировать свои точки в свой личный вектор (чтобы не было гонок и не были нужны точки синхронизации)
         std::vector<cv::KeyPoint> thread_points;
@@ -421,7 +438,6 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                         kp.pt = cv::Point2f((i + 0.5 + dx) * octave_downscale, (j + 0.5 + dy) * octave_downscale);
 //                        kp.pt = cv::Point2f((i + dx) * octave_downscale, (j + dy) * octave_downscale);
 
-
                         kp.response = fabs(contrast);
 
                         const double k = pow(2.0,
@@ -469,6 +485,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
             pointsDesc.insert(pointsDesc.end(), thread_descriptors.begin(), thread_descriptors.end());
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Время выполнения: " << duration.count() << " миллисекунд" << std::endl;
 
     rassert(pointsDesc.size() == keyPoints.size(), 12356351235124);
     desc = cv::Mat(pointsDesc.size(), DESCRIPTOR_SIZE * DESCRIPTOR_SIZE * DESCRIPTOR_NBINS, CV_32FC1);
@@ -478,6 +497,7 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
             desc.at<float>(j, i) = pointsDesc[j][i];
         }
     }
+
 }
 
 bool phg::SIFT::buildLocalOrientationHists(const cv::Mat &img, size_t i, size_t j, size_t radius,
@@ -545,7 +565,7 @@ bool phg::SIFT::buildDescriptor(const cv::Mat &img, float px, float py, double d
                                 return false;
 
                             double magnitude = compute_magnitude(img, x, y);
-                            double orientation = compute_orientation(img, x, y);
+                            double orientation = compute_orientation(img, x, y, angle);
                             // TODO за счет чего этот вклад будет сравниваться с этим же вкладом даже если эта картинка будет повернута?
                             // что нужно сделать с ориентацией каждого градиента из окрестности этой ключевой точки?
                             static_assert(360 % DESCRIPTOR_NBINS == 0, "Inappropriate bins number!");
