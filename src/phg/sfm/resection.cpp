@@ -27,13 +27,15 @@ namespace {
         }
         sc = std::sqrt(3 / sc);
 
+        tt *= sc;
+        RR *= sc;
+
         Eigen::MatrixXd RRe;
         copy(RR, RRe);
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(RRe, Eigen::ComputeFullU | Eigen::ComputeFullV);
         RRe = svd.matrixU() * svd.matrixV().transpose();
         copy(RRe, RR);
 
-        tt *= sc;
 
         matrix34d result;
         for (int i = 0; i < 9; ++i) {
