@@ -19,7 +19,7 @@
 #include <random>
 
 
-#define ENABLE_MY_SFM 0
+#define ENABLE_MY_SFM 1
 
 namespace {
 
@@ -550,13 +550,13 @@ TEST (SFM, Resection) {
     matrix3d F = phg::findFMatrix(points1, points2);
     matrix3d E = phg::fmatrix2ematrix(F, calib0, calib1);
 
-    matrix34d P0, P1;
-    phg::decomposeEMatrix(P0, P1, E, points1, points2, calib0, calib1);
+    matrix34d P0_nocalib, P1_nocalib;
+    phg::decomposeEMatrix(P0_nocalib, P1_nocalib, E, points1, points2, calib0, calib1);
 
     matrix3d R0, R1;
     vector3d O0, O1;
-    phg::decomposeUndistortedPMatrix(R0, O0, P0);
-    phg::decomposeUndistortedPMatrix(R1, O1, P1);
+    phg::decomposeUndistortedPMatrix(R0, O0, P0_nocalib);
+    phg::decomposeUndistortedPMatrix(R1, O1, P1_nocalib);
 
     std::cout << "Camera positions: " << std::endl;
     std::cout << "R0:\n" << R0 << std::endl;
@@ -568,7 +568,7 @@ TEST (SFM, Resection) {
     std::vector<cv::Vec2d> x0s;
     std::vector<cv::Vec2d> x1s;
 
-    matrix34d Ps[2] = {P0, P1};
+    matrix34d Ps[2] = {P0_nocalib, P1_nocalib};
     for (int i = 0; i < (int) good_matches_gms.size(); ++i) {
         vector3d ms[2] = {calib0.unproject(points1[i]), calib1.unproject(points2[i])};
         vector4d X = phg::triangulatePoint(Ps, ms, 2);
@@ -583,12 +583,12 @@ TEST (SFM, Resection) {
         x1s.push_back(points2[i]);
     }
 
-    matrix34d P0res = phg::findCameraMatrix(calib0, Xs, x0s);
-    matrix34d P1res = phg::findCameraMatrix(calib1, Xs, x1s);
+    matrix34d P0res = phg::findCameraMatrixNocalib(calib0, Xs, x0s);
+    matrix34d P1res = phg::findCameraMatrixNocalib(calib1, Xs, x1s);
 
-    double rms0 = matRMS(P0res, P0);
-    double rms1 = matRMS(P1res, P1);
-    double rms2 = matRMS(P0, P1);
+    double rms0 = matRMS(P0res, P0_nocalib);
+    double rms1 = matRMS(P1res, P1_nocalib);
+    double rms2 = matRMS(P0_nocalib, P1_nocalib);
 
     EXPECT_LT(rms0, 0.005);
     EXPECT_LT(rms1, 0.005);
@@ -742,7 +742,7 @@ TEST (SFM, ReconstructNViews) {
             }
         }
 
-        matrix34d P = phg::findCameraMatrix(calib0, Xs, xs);
+        matrix34d P = phg::findCameraMatrixNocalib(calib0, Xs, xs);
 
         cameras[i_camera] = P;
         aligned[i_camera] = true;
