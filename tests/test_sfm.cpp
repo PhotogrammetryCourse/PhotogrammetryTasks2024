@@ -16,6 +16,7 @@
 #include <phg/utils/point_cloud_export.h>
 
 #include "utils/test_utils.h"
+#include <random>
 
 
 #define ENABLE_MY_SFM 0
@@ -107,7 +108,13 @@ namespace {
 
         return cos_vals;
     }
+    cv::Vec2d pp2_to_2d(const cv::Vec3d& p) {
+        return {p[0] / p[2], p[1] / p[2]};
+    }
 
+    cv::Vec3d twod_to_pp2(const cv::Vec2d& p) {
+        return {p[0], p[1], 1.0};
+    }
 }
 
 #define TEST_EPIPOLAR_LINE(pt0, pt1, F, t, eps) \
@@ -221,6 +228,54 @@ TEST (SFM, FmatrixSimple) {
 
     EXPECT_TRUE(checkFmatrixSpectralProperty(F));
     EXPECT_TRUE(checkFmatrixSpectralProperty(Fcv));
+}
+
+TEST (SFM, FmatrixOnRandomPoints) {
+#if !ENABLE_MY_SFM
+    return;
+#endif
+    matrix34d P0 = matrix34d::eye();
+
+    // P1
+    vector3d origin = {2, 0, 0};
+    double alpha = M_PI_4;
+    double s = std::sin(alpha);
+    double c = std::cos(alpha);
+    matrix3d R = { c, 0, s,
+                   0, 1, 0,
+                   -s, 0, c};
+    vector3d T = -R * origin;
+    matrix34d P1 = {
+            R(0, 0), R(0, 1), R(0, 2), T[0],
+            R(1, 0), R(1, 1), R(1, 2), T[1],
+            R(2, 0), R(2, 1), R(2, 2), T[2]
+    };
+    std::mt19937 eng{1337};
+    std::uniform_real_distribution<double> uniform_dist(0.0, 100.0);
+    std::vector<vector4d> Xs;
+    for (int i = 0; i < 8; ++i) {
+        Xs.push_back(vector4d{uniform_dist(eng), uniform_dist(eng), uniform_dist(eng),
+                              1.0});
+    }
+    std::vector<cv::Vec2d> pts0, pts1;
+    for (int i = 0; i < 8; ++i) {
+        auto p0 = P0 * Xs[i];
+        pts0.push_back(pp2_to_2d(p0));
+        auto p1 = P1 * Xs[i];
+        pts1.push_back(pp2_to_2d(p1));
+    }
+
+
+    matrix3d F = phg::findFMatrix(pts0, pts1);
+    std::cout << "F=" << F << std::endl;
+    double eps = 1e-7;
+    for (int i = 0 ; i < 8; ++i) {
+        cv::Vec3d p0 = twod_to_pp2(pts0[i]);
+        cv::Vec3d p1 = twod_to_pp2(pts1[i]);
+        EXPECT_LE((p1.t() * F * p0)(0), eps);
+    }
+
+    EXPECT_TRUE(checkFmatrixSpectralProperty(F));
 }
 
 TEST (SFM, TriangulationSimple) {
