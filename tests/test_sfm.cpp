@@ -217,10 +217,11 @@ TEST (SFM, FmatrixSimple) {
 #endif
 
     std::vector<cv::Vec2d> pts0, pts1;
-    std::srand(1);
+    std::mt19937 eng{1337};
+    std::uniform_int_distribution<int> uniform_dist(0, 100);
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
-        pts1.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
+        pts0.push_back({(double)uniform_dist(eng), (double)uniform_dist(eng)});
+        pts1.push_back({(double)uniform_dist(eng), (double)uniform_dist(eng)});
     }
 
     matrix3d F = phg::findFMatrix(pts0, pts1);
