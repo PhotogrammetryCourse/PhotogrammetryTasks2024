@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <iostream>
 
 
 // pseudorandom number generator
@@ -41,5 +42,18 @@ void phg::randomSample(std::vector<int> &dst, int max_id, int sample_size, uint6
 // проверяет, что расстояние от точки до линии меньше порога
 bool phg::epipolarTest(const cv::Vec2d &pt0, const cv::Vec2d &pt1, const cv::Matx33d &F, double t)
 {
-    throw std::runtime_error("not implemented yet");
+//    cv::Mat pt0_v{3, 1, CV_64FC1};
+//    cv::Mat line_vec = F * pt0_v;
+    cv::Matx31d pt0_v{pt0[0], pt0[1], 1.0};
+    auto line_vec = F * pt0_v;
+    double a_ = line_vec(0, 0);
+    double b_ = line_vec(0, 1);
+    double c_ = line_vec(0, 2);
+    auto norm = std::sqrt(a_  * a_  + b_ * b_);
+    double a = a_ / norm;
+    double b = b_ / norm;
+    double c = c_ / norm;
+    double oriented_dist = a * pt1[0] + b * pt1[1] + c;
+//    std::cout << "Distance to line is " << std::abs(oriented_dist) << std::endl;
+    return std::abs(oriented_dist) < t;
 }
