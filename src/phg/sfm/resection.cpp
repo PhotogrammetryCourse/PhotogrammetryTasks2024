@@ -27,13 +27,15 @@ namespace {
         }
         sc = std::sqrt(3 / sc);
 
+        tt *= sc;
+        RR *= sc;
+
         Eigen::MatrixXd RRe;
         copy(RR, RRe);
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(RRe, Eigen::ComputeFullU | Eigen::ComputeFullV);
         RRe = svd.matrixU() * svd.matrixV().transpose();
         copy(RRe, RR);
 
-        tt *= sc;
 
         matrix34d result;
         for (int i = 0; i < 9; ++i) {
@@ -76,12 +78,13 @@ namespace {
     }
 
 
-    // По трехмерным точкам и их проекциям на изображении определяем положение камеры
-    cv::Matx34d estimateCameraMatrixRANSAC(const phg::Calibration &calib, const std::vector<cv::Vec3d> &X, const std::vector<cv::Vec2d> &x)
+    // По трехмерным точкам и их проекциям на изображении определяем положение камеры без калибровки
+    // (то есть функция возвращает матрицу (R|t); см. также функцию canonicalizeP
+    cv::Matx34d estimateCameraMatrixNocalibRANSAC(const phg::Calibration &calib, const std::vector<cv::Vec3d> &X, const std::vector<cv::Vec2d> &x)
     {
         throw std::runtime_error("not implemented yet");
 //        if (X.size() != x.size()) {
-//            throw std::runtime_error("estimateCameraMatrixRANSAC: X.size() != x.size()");
+//            throw std::runtime_error("estimateCameraMatrixNocalibRANSAC: X.size() != x.size()");
 //        }
 //
 //        const int n_points = X.size();
@@ -123,7 +126,7 @@ namespace {
 //                best_support = support;
 //                best_P = P;
 //
-//                std::cout << "estimateCameraMatrixRANSAC : support: " << best_support << "/" << n_points << std::endl;
+//                std::cout << "estimateCameraMatrixNocalibRANSAC : support: " << best_support << "/" << n_points << std::endl;
 //
 //                if (best_support == n_points) {
 //                    break;
@@ -131,10 +134,10 @@ namespace {
 //            }
 //        }
 //
-//        std::cout << "estimateCameraMatrixRANSAC : best support: " << best_support << "/" << n_points << std::endl;
+//        std::cout << "estimateCameraMatrixNocalibRANSAC : best support: " << best_support << "/" << n_points << std::endl;
 //
 //        if (best_support == 0) {
-//            throw std::runtime_error("estimateCameraMatrixRANSAC : failed to estimate camera matrix");
+//            throw std::runtime_error("estimateCameraMatrixNocalibRANSAC : failed to estimate camera matrix");
 //        }
 //
 //        return best_P;
@@ -143,6 +146,6 @@ namespace {
 
 }
 
-cv::Matx34d phg::findCameraMatrix(const Calibration &calib, const std::vector <cv::Vec3d> &X, const std::vector <cv::Vec2d> &x) {
-    return estimateCameraMatrixRANSAC(calib, X, x);
+cv::Matx34d phg::findCameraMatrixNocalib(const Calibration &calib, const std::vector <cv::Vec3d> &X, const std::vector <cv::Vec2d> &x) {
+    return estimateCameraMatrixNocalibRANSAC(calib, X, x);
 }

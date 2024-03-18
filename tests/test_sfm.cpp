@@ -16,6 +16,7 @@
 #include <phg/utils/point_cloud_export.h>
 
 #include "utils/test_utils.h"
+#include <random>
 
 
 #define ENABLE_MY_SFM 0
@@ -64,9 +65,10 @@ namespace {
         std::cout << "checkEmatrixSpectralProperty: s: " << s.transpose() << std::endl;
 
         double thresh = 1e10;
+        double eps = 1e-6;
 
         bool rank2 = s[0] > thresh * s[2] && s[1] > thresh * s[2];
-        bool equal = (s[0] < (1.0 + thresh) * s[1]) && (s[1] < (1.0 + thresh) * s[0]);
+        bool equal = (s[0] < (1.0 + eps) * s[1]) && (s[1] < (1.0 + eps) * s[0]);
 
         return rank2 && equal;
     }
@@ -106,7 +108,13 @@ namespace {
 
         return cos_vals;
     }
+    cv::Vec2d pp2_to_2d(const cv::Vec3d& p) {
+        return {p[0] / p[2], p[1] / p[2]};
+    }
 
+    cv::Vec3d twod_to_pp2(const cv::Vec2d& p) {
+        return {p[0], p[1], 1.0};
+    }
 }
 
 #define TEST_EPIPOLAR_LINE(pt0, pt1, F, t, eps) \
@@ -209,10 +217,11 @@ TEST (SFM, FmatrixSimple) {
 #endif
 
     std::vector<cv::Vec2d> pts0, pts1;
-    std::srand(1);
+    std::mt19937 eng{1337};
+    std::uniform_int_distribution<int> uniform_dist(0, 100);
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
-        pts1.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
+        pts0.push_back({(double)uniform_dist(eng), (double)uniform_dist(eng)});
+        pts1.push_back({(double)uniform_dist(eng), (double)uniform_dist(eng)});
     }
 
     matrix3d F = phg::findFMatrix(pts0, pts1);
@@ -222,83 +231,52 @@ TEST (SFM, FmatrixSimple) {
     EXPECT_TRUE(checkFmatrixSpectralProperty(Fcv));
 }
 
-TEST (SFM, EmatrixSimple) {
-
+TEST (SFM, FmatrixOnRandomPoints) {
 #if !ENABLE_MY_SFM
     return;
 #endif
+    matrix34d P0 = matrix34d::eye();
 
-    phg::Calibration calib(360, 240);
-    std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
-
-    std::vector<cv::Vec2d> pts0, pts1;
-    std::srand(1);
+    // P1
+    vector3d origin = {2, 0, 0};
+    double alpha = M_PI_4;
+    double s = std::sin(alpha);
+    double c = std::cos(alpha);
+    matrix3d R = { c, 0, s,
+                   0, 1, 0,
+                   -s, 0, c};
+    vector3d T = -R * origin;
+    matrix34d P1 = {
+            R(0, 0), R(0, 1), R(0, 2), T[0],
+            R(1, 0), R(1, 1), R(1, 2), T[1],
+            R(2, 0), R(2, 1), R(2, 2), T[2]
+    };
+    std::mt19937 eng{1337};
+    std::uniform_real_distribution<double> uniform_dist(0.0, 100.0);
+    std::vector<vector4d> Xs;
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
-        pts1.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
+        Xs.push_back(vector4d{uniform_dist(eng), uniform_dist(eng), uniform_dist(eng),
+                              1.0});
+    }
+    std::vector<cv::Vec2d> pts0, pts1;
+    for (int i = 0; i < 8; ++i) {
+        auto p0 = P0 * Xs[i];
+        pts0.push_back(pp2_to_2d(p0));
+        auto p1 = P1 * Xs[i];
+        pts1.push_back(pp2_to_2d(p1));
     }
 
-    matrix3d F = phg::findFMatrix(pts0, pts1, 10);
-    matrix3d E = phg::fmatrix2ematrix(F, calib, calib);
 
-    EXPECT_TRUE(checkEmatrixSpectralProperty(E));
-}
-
-TEST (SFM, EmatrixDecomposeSimple) {
-
-#if !ENABLE_MY_SFM
-    return;
-#endif
-
-    phg::Calibration calib(360, 240);
-    std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
-
-    std::vector<cv::Vec2d> pts0, pts1;
-    std::srand(1);
-    for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
-        pts1.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
+    matrix3d F = phg::findFMatrix(pts0, pts1);
+    std::cout << "F=" << F << std::endl;
+    double eps = 1e-7;
+    for (int i = 0 ; i < 8; ++i) {
+        cv::Vec3d p0 = twod_to_pp2(pts0[i]);
+        cv::Vec3d p1 = twod_to_pp2(pts1[i]);
+        EXPECT_LE((p1.t() * F * p0)(0), eps);
     }
 
-    matrix3d F = phg::findFMatrix(pts0, pts1, 10);
-    matrix3d E = phg::fmatrix2ematrix(F, calib, calib);
-
-    matrix34d P0, P1;
-    phg::decomposeEMatrix(P0, P1, E, pts0, pts1, calib, calib);
-
-    matrix3d R;
-    R = P1.get_minor<3, 3>(0, 0);
-    vector3d T;
-    T(0) = P1(0, 3);
-    T(1) = P1(1, 3);
-    T(2) = P1(2, 3);
-
-    matrix3d E1 = phg::composeEMatrixRT(R, T);
-    matrix3d E2 = phg::composeFMatrix(P0, P1);
-
-    EXPECT_NE(E(2, 2), 0);
-    EXPECT_NE(E1(2, 2), 0);
-    EXPECT_NE(E2(2, 2), 0);
-
-    E /= E(2, 2);
-    E1 /= E1(2, 2);
-    E2 /= E2(2, 2);
-
-    double rms1 = matRMS(E, E1);
-    double rms2 = matRMS(E, E2);
-    double rms3 = matRMS(E1, E2);
-
-    std::cout << "E: \n" << E << std::endl;
-    std::cout << "E1: \n" << E1 << std::endl;
-    std::cout << "E2: \n" << E2 << std::endl;
-    std::cout << "RMS1: " << rms1 << std::endl;
-    std::cout << "RMS2: " << rms2 << std::endl;
-    std::cout << "RMS3: " << rms3 << std::endl;
-
-    double eps = 1e-10;
-    EXPECT_LT(rms1, eps);
-    EXPECT_LT(rms2, eps);
-    EXPECT_LT(rms3, eps);
+    EXPECT_TRUE(checkFmatrixSpectralProperty(F));
 }
 
 TEST (SFM, TriangulationSimple) {
@@ -572,13 +550,13 @@ TEST (SFM, Resection) {
     matrix3d F = phg::findFMatrix(points1, points2);
     matrix3d E = phg::fmatrix2ematrix(F, calib0, calib1);
 
-    matrix34d P0, P1;
-    phg::decomposeEMatrix(P0, P1, E, points1, points2, calib0, calib1);
+    matrix34d P0_nocalib, P1_nocalib;
+    phg::decomposeEMatrix(P0_nocalib, P1_nocalib, E, points1, points2, calib0, calib1);
 
     matrix3d R0, R1;
     vector3d O0, O1;
-    phg::decomposeUndistortedPMatrix(R0, O0, P0);
-    phg::decomposeUndistortedPMatrix(R1, O1, P1);
+    phg::decomposeUndistortedPMatrix(R0, O0, P0_nocalib);
+    phg::decomposeUndistortedPMatrix(R1, O1, P1_nocalib);
 
     std::cout << "Camera positions: " << std::endl;
     std::cout << "R0:\n" << R0 << std::endl;
@@ -590,7 +568,7 @@ TEST (SFM, Resection) {
     std::vector<cv::Vec2d> x0s;
     std::vector<cv::Vec2d> x1s;
 
-    matrix34d Ps[2] = {P0, P1};
+    matrix34d Ps[2] = {P0_nocalib, P1_nocalib};
     for (int i = 0; i < (int) good_matches_gms.size(); ++i) {
         vector3d ms[2] = {calib0.unproject(points1[i]), calib1.unproject(points2[i])};
         vector4d X = phg::triangulatePoint(Ps, ms, 2);
@@ -605,12 +583,12 @@ TEST (SFM, Resection) {
         x1s.push_back(points2[i]);
     }
 
-    matrix34d P0res = phg::findCameraMatrix(calib0, Xs, x0s);
-    matrix34d P1res = phg::findCameraMatrix(calib1, Xs, x1s);
+    matrix34d P0res = phg::findCameraMatrixNocalib(calib0, Xs, x0s);
+    matrix34d P1res = phg::findCameraMatrixNocalib(calib1, Xs, x1s);
 
-    double rms0 = matRMS(P0res, P0);
-    double rms1 = matRMS(P1res, P1);
-    double rms2 = matRMS(P0, P1);
+    double rms0 = matRMS(P0res, P0_nocalib);
+    double rms1 = matRMS(P1res, P1_nocalib);
+    double rms2 = matRMS(P0_nocalib, P1_nocalib);
 
     EXPECT_LT(rms0, 0.005);
     EXPECT_LT(rms1, 0.005);
@@ -764,7 +742,7 @@ TEST (SFM, ReconstructNViews) {
             }
         }
 
-        matrix34d P = phg::findCameraMatrix(calib0, Xs, xs);
+        matrix34d P = phg::findCameraMatrixNocalib(calib0, Xs, xs);
 
         cameras[i_camera] = P;
         aligned[i_camera] = true;

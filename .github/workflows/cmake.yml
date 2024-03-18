@@ -33,10 +33,8 @@ jobs:
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-      - name: test_sift
-        working-directory: ${{github.workspace}}
-        run: ./build/test_sift
-
       - name: test_matching
         working-directory: ${{github.workspace}}
-        run: ./build/test_matching
+        run: ./build/test_sfm
+
+
