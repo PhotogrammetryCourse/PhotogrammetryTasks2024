@@ -19,7 +19,7 @@
 #include <random>
 
 
-#define ENABLE_MY_SFM 1
+#define ENABLE_MY_SFM 0
 
 namespace {
 
