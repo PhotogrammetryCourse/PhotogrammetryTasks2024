@@ -232,7 +232,7 @@ namespace {
 
         // https://en.wikipedia.org/wiki/Random_sample_consensus#Parameters
         // будет отличаться от случая с гомографией
-        const float inliers_ratio = 0.3;
+        const float inliers_ratio = 0.25;
         const float success_probability = 0.999;
         const int n_samples = 6;
         const int n_trials = static_cast<int>(ceil(log(1 - success_probability) / log(1 - pow(inliers_ratio, n_samples))));
