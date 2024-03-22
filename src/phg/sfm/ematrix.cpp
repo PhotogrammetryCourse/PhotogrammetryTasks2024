@@ -21,7 +21,11 @@ namespace {
 
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
         Eigen::Vector3d singularValues = svd.singularValues();
-        rassert(singularValues[0] == singularValues[1] && singularValues[2] == 0, 14211469120);
+
+        Eigen::MatrixXd U = svd.matrixU();
+        Eigen::VectorXd s = svd.singularValues();
+        Eigen::MatrixXd V = svd.matrixV();
+        E = U * Eigen::DiagonalMatrix<double, 3>(1, 1, 0) * V.transpose();
         copy(E, Ecv);
     }
 
@@ -29,7 +33,7 @@ namespace {
 
 cv::Matx33d phg::fmatrix2ematrix(const cv::Matx33d &F, const phg::Calibration &calib0, const phg::Calibration &calib1)
 {
-    matrix3d E = calib0.K().t() * F * calib1.K();
+    matrix3d E = calib1.K().t() * F * calib0.K();
     ensureSpectralProperty(E);
     return E;
 }
@@ -72,9 +76,9 @@ namespace {
        }
 
        // точка должна иметь положительную глубину для обеих камер
-       vector3d X_proj_0 = calib0.K() * P0 * X;
-       vector3d X_proj_1 = calib1.K() * P1 * X;
-       return X_proj_0[2] > 0 && X_proj_1[2] > 0;
+       vector3d X_0 = calib0.K().inv() * P0 * X;
+       vector3d X_1 = calib1.K().inv() * P1 * X;
+       return X_0[2] > 0 && X_1[2] > 0;
     }
 }
 
@@ -125,7 +129,7 @@ void phg::decomposeEMatrix(cv::Matx34d &P0, cv::Matx34d &P1, const cv::Matx33d &
     std::cout << "R0:\n" << R0 << std::endl;
     std::cout << "R1:\n" << R1 << std::endl;
 
-    vec t0 = U.row(2);
+    vec t0 = U.col(2);
     vec t1 = -t0;
 
     std::cout << "t0:\n" << t0 << std::endl;
