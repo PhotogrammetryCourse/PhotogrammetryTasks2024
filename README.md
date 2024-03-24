@@ -9,7 +9,7 @@
 - **12.02** [Задание 1:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task01) Локальные ключевые точки SIFT (детектор и дескриптор).
 - **19.02** [Задание 2:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task02) Сопоставление ключевых точек и подсчет гомографии.
 - **04.03** [Задание 3:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task03) SFM. Оценка взаимной ориентации и положения камер, построение облака точек.
-- **25.03** Задание 4: SFM. Ceres Solver и Bundle Adjustment.
+- **25.03** [Задание 4:](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/tree/task04) SFM. Ceres Solver и Bundle Adjustment.
 - **01.04** Задание 5: Depth Maps. Patch Match.
 - **22.04** Задание 6: Build model. Triangulation Delaunay + Graph Min-Cut.
 
