@@ -7,6 +7,8 @@ phg::Calibration::Calibration(int width, int height)
     , height_(height)
     , cx_(0)
     , cy_(0)
+    , k1_(0)
+    , k2_(0)
 {
     // 50mm guess
 
@@ -30,10 +32,30 @@ int phg::Calibration::height() const {
 
 cv::Vec3d phg::Calibration::project(const cv::Vec3d &point) const
 {
-    return K() * point;
+    double x = point[0] / point[2];
+    double y = point[1] / point[2];
+
+    // TODO 11: добавьте учет радиальных искажений (k1_, k2_) (после деления на Z, но до умножения на f)
+
+
+    x *= f_;
+    y *= f_;
+
+    x += cx_ + width_ * 0.5;
+    y += cy_ + height_ * 0.5;
+
+    return cv::Vec3d(x, y, 1.0);
 }
 
 cv::Vec3d phg::Calibration::unproject(const cv::Vec2d &pixel) const
 {
-    return K().inv() * vector3d(pixel[0], pixel[1], 1.0);
+    double x = pixel[0] - cx_ - width_ * 0.5;
+    double y = pixel[1] - cy_ - height_ * 0.5;
+
+    x /= f_;
+    y /= f_;
+
+    // TODO 12: добавьте учет радиальных искажений, когда реализуете - подумайте: почему строго говоря это - не симметричная формула формуле из project? (но лишь приближение)
+
+    return cv::Vec3d(x, y, 1.0);
 }

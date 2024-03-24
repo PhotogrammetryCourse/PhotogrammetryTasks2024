@@ -17,9 +17,6 @@
 
 #include "utils/test_utils.h"
 
-
-#define ENABLE_MY_SFM 0
-
 namespace {
 
     void filterMatchesF(const std::vector<cv::DMatch> &matches, const std::vector<cv::KeyPoint> keypoints_query,
@@ -115,10 +112,6 @@ EXPECT_TRUE(phg::epipolarTest(pt0, pt1, F, t + eps));
 
 TEST (SFM, EpipolarDist) {
 
-#if !ENABLE_MY_SFM
-    return;
-#endif
-
     const vector2d pt0 = {0, 0};
     const double eps = 1e-5;
 
@@ -204,10 +197,6 @@ TEST (SFM, EpipolarDist) {
 
 TEST (SFM, FmatrixSimple) {
 
-#if !ENABLE_MY_SFM
-    return;
-#endif
-
     std::vector<cv::Vec2d> pts0, pts1;
     std::srand(1);
     for (int i = 0; i < 8; ++i) {
@@ -223,10 +212,6 @@ TEST (SFM, FmatrixSimple) {
 }
 
 TEST (SFM, EmatrixSimple) {
-
-#if !ENABLE_MY_SFM
-    return;
-#endif
 
     phg::Calibration calib(360, 240);
     std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
@@ -245,10 +230,6 @@ TEST (SFM, EmatrixSimple) {
 }
 
 TEST (SFM, EmatrixDecomposeSimple) {
-
-#if !ENABLE_MY_SFM
-    return;
-#endif
 
     phg::Calibration calib(360, 240);
     std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
@@ -303,10 +284,6 @@ TEST (SFM, EmatrixDecomposeSimple) {
 
 TEST (SFM, TriangulationSimple) {
 
-#if !ENABLE_MY_SFM
-    return;
-#endif
-
     vector4d X = {0, 0, 2, 1};
 
     matrix34d P0 = matrix34d::eye();
@@ -351,10 +328,6 @@ TEST (SFM, TriangulationSimple) {
 }
 
 TEST (SFM, FmatrixMatchFiltering) {
-
-#if !ENABLE_MY_SFM
-    return;
-#endif
 
     using namespace cv;
 
@@ -425,11 +398,21 @@ TEST (SFM, FmatrixMatchFiltering) {
     EXPECT_GT(good_matches_gms_plus_f.size(), 0.5 * good_matches_f.size());
 }
 
-TEST (SFM, RelativePosition2View) {
+namespace {
 
-#if !ENABLE_MY_SFM
-    return;
-#endif
+    void transform(matrix3d &R, vector3d &O)
+    {
+        matrix4d H = matrix4d::diag({1, -1, -1, 1});
+        matrix3d Rinv = H.inv().get_minor<3, 3>(0, 0);
+
+        auto tmp = H * vector4d({O[0], O[1], O[2], 1.0});
+        O = {tmp[0] / tmp[3], tmp[1] / tmp[3], tmp[2] / tmp[3]};
+        R = R * Rinv;
+    }
+
+}
+
+TEST (SFM, RelativePosition2View) {
 
     using namespace cv;
 
@@ -479,6 +462,10 @@ TEST (SFM, RelativePosition2View) {
     vector3d O0, O1;
     phg::decomposeUndistortedPMatrix(R0, O0, P0);
     phg::decomposeUndistortedPMatrix(R1, O1, P1);
+    transform(R0, O0);
+    transform(R1, O1);
+    P0 = phg::composeCameraMatrixRO(R0, O0);
+    P1 = phg::composeCameraMatrixRO(R1, O1);
 
     std::cout << "Camera positions: " << std::endl;
     std::cout << "R0:\n" << R0 << std::endl;
@@ -489,7 +476,7 @@ TEST (SFM, RelativePosition2View) {
     {
         vector3d relative_cos_vals = relativeOrientationAngles(R0, O0, R1, O1);
         std::cout << "relative_cos_vals: " << relative_cos_vals << std::endl;
-        vector3d relative_cos_vals_expected = {0.961669, -0.1386, -0.404852};
+        vector3d relative_cos_vals_expected = {0.966827, -0.141921, 0.115634};
         EXPECT_LT(cv::norm(relative_cos_vals - relative_cos_vals_expected), 0.05);
     }
 
@@ -513,12 +500,12 @@ TEST (SFM, RelativePosition2View) {
 
     point_cloud.push_back(O0);
     point_cloud_colors.push_back(cv::Vec3b{0, 0, 255});
-    point_cloud.push_back(O0 + R0.t() * cv::Vec3d(0, 0, 1));
+    point_cloud.push_back(O0 + R0 * cv::Vec3d(0, 0, 1));
     point_cloud_colors.push_back(cv::Vec3b(255, 0, 0));
 
     point_cloud.push_back(O1);
     point_cloud_colors.push_back(cv::Vec3b{0, 0, 255});
-    point_cloud.push_back(O1 + R1.t() * cv::Vec3d(0, 0, 1));
+    point_cloud.push_back(O1 + R1 * cv::Vec3d(0, 0, 1));
     point_cloud_colors.push_back(cv::Vec3b(255, 0, 0));
 
     std::cout << "exporting " << point_cloud.size() << " points..." << std::endl;
@@ -526,10 +513,6 @@ TEST (SFM, RelativePosition2View) {
 }
 
 TEST (SFM, Resection) {
-
-#if !ENABLE_MY_SFM
-    return;
-#endif
 
     using namespace cv;
 
@@ -579,6 +562,10 @@ TEST (SFM, Resection) {
     vector3d O0, O1;
     phg::decomposeUndistortedPMatrix(R0, O0, P0);
     phg::decomposeUndistortedPMatrix(R1, O1, P1);
+    transform(R0, O0);
+    transform(R1, O1);
+    P0 = phg::composeCameraMatrixRO(R0, O0);
+    P1 = phg::composeCameraMatrixRO(R1, O1);
 
     std::cout << "Camera positions: " << std::endl;
     std::cout << "R0:\n" << R0 << std::endl;
@@ -629,10 +616,6 @@ namespace {
 
 TEST (SFM, ReconstructNViews) {
 
-#if !ENABLE_MY_SFM
-    return;
-#endif
-
     using namespace cv;
 
     std::vector<cv::Mat> imgs;
@@ -641,8 +624,8 @@ TEST (SFM, ReconstructNViews) {
     imgs.push_back(cv::imread("data/src/test_sfm/saharov/IMG_3025.JPG"));
 
     std::vector<vector3d> expected_orientations;
-    expected_orientations.push_back({0.961669, -0.1386, -0.404852});
-    expected_orientations.push_back({0.972914, -0.535828, -0.715859});
+    expected_orientations.push_back({0.966827, -0.141921, 0.115634});
+    expected_orientations.push_back({0.972914, -0.0489595, 0.183026});
 
     std::vector<phg::Calibration> calibs;
     for (const auto &img : imgs) {
@@ -715,6 +698,17 @@ TEST (SFM, ReconstructNViews) {
 
         matrix34d P0, P1;
         phg::decomposeEMatrix(P0, P1, E, points0, points1, calib0, calib1);
+
+        {
+            matrix3d R0, R1;
+            vector3d O0, O1;
+            phg::decomposeUndistortedPMatrix(R0, O0, P0);
+            phg::decomposeUndistortedPMatrix(R1, O1, P1);
+            transform(R0, O0);
+            transform(R1, O1);
+            P0 = phg::composeCameraMatrixRO(R0, O0);
+            P1 = phg::composeCameraMatrixRO(R1, O1);
+        }
 
         cameras[0] = P0;
         cameras[1] = P1;
@@ -827,7 +821,7 @@ TEST (SFM, ReconstructNViews) {
 
         tie_points.push_back(O);
         tie_points_colors.push_back(cv::Vec3b(0, 0, 255));
-        tie_points.push_back(O + R.t() * cv::Vec3d(0, 0, 1));
+        tie_points.push_back(O + R * cv::Vec3d(0, 0, 1));
         tie_points_colors.push_back(cv::Vec3b(255, 0, 0));
     }
 
