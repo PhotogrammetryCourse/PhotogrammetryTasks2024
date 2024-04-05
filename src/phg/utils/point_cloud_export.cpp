@@ -11,6 +11,8 @@
 #include "opencv2/core/core.hpp"
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <filesystem>
 
 
 namespace {
@@ -72,6 +74,8 @@ namespace {
     {
         // MARK: Init
         // Opening filestream
+        std::filesystem::path p{"./" + outputfile};
+        std::filesystem::create_directories(p.parent_path());
         switch (format) {
             case FileFormat::PLY_BIN_LITEND:
             case FileFormat::PLY_BIN_BIGEND:
@@ -201,4 +205,5 @@ void phg::exportPointCloud(const std::vector<cv::Vec3d> &point_cloud, const std:
 
     DataExporter data(coords3d, img, path, FileFormat::PLY_BIN_BIGEND);
     data.exportToFile();
+    std::cout << "Data should now be exported to " << path << std::endl;
 }
