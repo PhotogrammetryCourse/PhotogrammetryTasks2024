@@ -2,54 +2,46 @@
 
 [Остальные задания](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/).
 
-# Задание 4. SFM. Ceres Solver и Bundle Adjustment.
+# Задание 5. Depth Maps. Patch Match
 
-[![Build Status](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml/badge.svg?branch=task04&event=push)](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml/badge.svg?branch=task05&event=push)](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2024/actions/workflows/cmake.yml)
 
-0. Установить Eigen (если не установили в прошлом задании) и  Ceres Solver - см. инструкции в CMakeLists.txt
-1. Выполнить задания ниже
-2. Отправить **Pull-request** с названием```Task04 <Имя> <Фамилия> <Аффиляция>```:
+**Жесткий дедлайн**: вечер 21 апреля
 
- - Скопируйте в описание [шаблон](https://raw.githubusercontent.com/PhotogrammetryCourse/PhotogrammetryTasks2024/task04/.github/pull_request_template.md)
- - Обязательно отправляйте PR из вашей ветки **task04** (вашего форка) в ветку **task04** (основного репозитория)
+0. Скачать и распаковать в папку data/src/datasets/herzjesu25/ картинки по [ссылке](https://disk.yandex.com/d/AnCvI93VtRagNw)
+
+1. Проглядеть тест в tests/test_depth_maps_pm.cpp:
+
+ - Он грузит датасет DATASET_DIR уменьшая картинки в DATASET_DOWNSCALE раз
+ - Считывает информацию о расположениях камер и ключевых точек из заранее подготовленных cameras.out файлов
+ - Сохраняет ply-файл визуализирующий расположения камер и ключевых тчоек в data/debug/test_depth_maps_pm/FirstStereoPair
+ - Создает phg::PMDepthMapsBuilder и запускает построение карты глубины
+ 
+2. Проглядеть структуру кода в файле src/phg/mvs/depth_maps/pm_depth_maps.h содержащий PMDepthMapsBuilder, в нем самые важные функции:
+
+ - estimateCost() - подсчет насколько хороший ZNCC у текущей гипотезы с точки зрения фиксированной камеры-соседа
+ - avgCost() - объединение результатов вычисления cost текущей гипотезы в estimateCost для всех соседних камер (т.е. из N cost-ов мы хотим найти что-то вроде среднего)
+ - refinement() - попытка улучшить текущую гипотезу рандомными пертурбациями, рандомными новыми гипотезами (в разных комбинациях) 
+ - propagation() - попытка вдохновиться хорошими гипотезами из соседних пикселей
+ - printCurrentStats() - пишет статистику на каждой итерации (меняйте метрику если захочется!)
+ - debugCurrentPoints() - сохраняет ply-файлы с визуализацией результата на каждой итерации (в папку data/debug/test_depth_maps_pm/iterations_points)
+ 
+3. Выполнить TODO в папке src/phg/mvs/depth_maps (удобнее всего через клик слева по папке depth_maps -> Ctrl+Shift+F -> "TODO" -> Ctrl+Enter -> идти по возрастанию номеров):
+
+ - TODO с номерами 1XX - необходимо выполнить (большую часть из них нужно выполнить чтобы начать получать хоть какие-то результаты)
+ - TODO с номерами 2XX - нужно сделать хоть какие-то, экспериментируя, смотря как от этого меняется результат, записывая идеи, если появилось желание что-то странное сделать - делая это и т.п.
+ - TODO с номерами 3XX - идеи для экспериментов, можно не делать
+ 
+4. Отправить **Pull-request** с названием```Task05 <Имя> <Фамилия> <Аффиляция>```:
+
+ - Скопируйте в описание [шаблон](https://raw.githubusercontent.com/PhotogrammetryCourse/PhotogrammetryTasks2024/task05/.github/pull_request_template.md)
+ - Обязательно отправляйте PR из вашей ветки **task05** (вашего форка) в ветку **task05** (основного репозитория)
  - Перечислите свои мысли по вопросам поднятым в коде и просто появившиеся в процессе выполнения задания
  - Создайте PR
  - Затем дождавшись отработку Travis CI (около 15 минут) - скопируйте в описание PR вывод исполнения вашей программы **на CI** (через редактирование описания PR или комментарием, главное используйте пожалуйста спойлер для компактности)
+ 
+Про MeshLab:
 
-**Мягкий дедлайн**: лекция 31 марта.
-
-**Жесткий дедлайн**: вечер 7 апреля.
-
-Задание 4.1.
-=========
-
-Потренируйтесь в использовании Ceres Solver - выполните все TODO в tests/test_ceres_solver.cpp
-
-Задание 4.2.
-=========
-
-Добавьте учет радиальных дисторсий в src/phg/core/calibration.cpp
-
-Задание 4.3.
-=========
-
-Выполните все TODO в tests/test_sfm_ba.cpp
-
-В MeshLab можно не только смотреть на отдельные облака точек, но и сравнивать несколько:
-
-1) Запустите MeshLab
-2) Выделите несколько .ply файлов и drag&drop-ните их на MeshLab
-3) Затем нажмите на иконку Align - A в кружке (справа нажимая на глазики можно скрыть или показать конкретное облако, и нажав галку показать цвета вершин или ложные цвета):
-
-![MeshLab](/.github/screens/meshlab.png?raw=true)
-
-P.S. если у вас случается ошибка ```unknown file: error: SEH exception with code 0xc0000005 thrown in the test body.``` - вероятнее всего это обычный segfault (например выход за пределы массива), но почему то связка CLion + MSVC/Win это не обрабатывают корректно и не дают возможности увидеть строчку падения даже под отладчиком. Рекомендуется использовать Linux.
-
-Задание 4.4.
-=========
-
-Приложите скриншоты своих лучших результатов. Хотя бы по saharov и herzjesu. Примеры:
-
-![saharov32](/.github/screens/saharov32.png?raw=true)
-
-![herzjesu25](/.github/screens/herzjesu25.png?raw=true)
+ - Если дважды кликнуть мышкой - шарик вращения сфокусируется на месте клика, и туда будет легче призумиться
+ - Alt+колесо мышки позволяет настроить размер точек
+ - Render->Show Vertex Normals покажет нормали точек

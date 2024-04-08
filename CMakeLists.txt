@@ -24,7 +24,8 @@ find_package(OpenCV 4.5.1 REQUIRED)
 # mkdir build
 # cd build
 # cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_LIST=features2d,highgui,flann,calib3d -DWITH_OPENEXR=ON -DBUILD_EXAMPLES=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/opt/opencv451  ..
-# make -j12
+# njobs=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l` # https://stackoverflow.com/a/23378780
+# make -j{njobs} # njobs - число потоков которое будет использоваться для компиляции (по числу ядер)
 # sudo make install
 # укажите для CMake путь к OpenCV:
 # в CLion это делается через File->Settings->Build, Execution, Deployment->CMake->CMake options: -DOpenCV_DIR=/opt/opencv451/lib/cmake/opencv4
@@ -56,8 +57,9 @@ find_package(Ceres 2.0.0 REQUIRED)
 # cd ceres-solver-2.0.0
 # mkdir build
 # cd build
-# cmake -DCMAKE_INSTALL_PREFIX=/opt/ceres-solver200 ..
-# make -j3 # если у вас больше ядер ЦПУ - можно вставить большее число чтобы быстрее скомпилировалось
+# cmake -DCMAKE_INSTALL_PREFIX=/opt/ceres-solver200 -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF ..
+# njobs=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l` # https://stackoverflow.com/a/23378780
+# make -j{njobs} # njobs - число потоков которое будет использоваться для компиляции (по числу ядер)
 # make test
 # sudo make install
 # указать для CMake путь к ceres-solver (в дополнение к OpenCV и Eigen3):
@@ -100,6 +102,12 @@ set(SOURCES
         src/phg/matching/flann_matcher.cpp
         src/phg/matching/flann_matcher.h
         src/phg/matching/flann_factory.h
+        src/phg/mvs/depth_maps/pm_depth_maps.cpp
+        src/phg/mvs/depth_maps/pm_depth_maps.h
+        src/phg/mvs/depth_maps/pm_fast_random.cpp
+        src/phg/mvs/depth_maps/pm_fast_random.h
+        src/phg/mvs/depth_maps/pm_geometry.cpp
+        src/phg/mvs/depth_maps/pm_geometry.h
         src/phg/sfm/defines.h
         src/phg/sfm/ematrix.cpp
         src/phg/sfm/ematrix.h
@@ -115,6 +123,10 @@ set(SOURCES
         src/phg/sfm/sfm_utils.h
         src/phg/sfm/triangulation.cpp
         src/phg/sfm/triangulation.h
+        src/phg/utils/cameras_bundler_export.cpp
+        src/phg/utils/cameras_bundler_export.h
+        src/phg/utils/cameras_bundler_import.cpp
+        src/phg/utils/cameras_bundler_import.h
         src/phg/utils/point_cloud_export.cpp
         src/phg/utils/point_cloud_export.h
         )
@@ -152,9 +164,11 @@ add_executable(test_matching        tests/test_matching.cpp         ${TEST_SOURC
 add_executable(test_sfm             tests/test_sfm.cpp              ${TEST_SOURCES})
 add_executable(test_ceres_solver    tests/test_ceres_solver.cpp     ${TEST_SOURCES})
 add_executable(test_sfm_ba          tests/test_sfm_ba.cpp           ${TEST_SOURCES})
+add_executable(test_depth_maps_pm   tests/test_depth_maps_pm.cpp    ${TEST_SOURCES})
 
-target_link_libraries(test_sift         ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
-target_link_libraries(test_matching     ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
-target_link_libraries(test_sfm          ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
-target_link_libraries(test_ceres_solver ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
-target_link_libraries(test_sfm_ba       ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_sift          ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_matching      ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_sfm           ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_ceres_solver  ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_sfm_ba        ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})
+target_link_libraries(test_depth_maps_pm ${PROJECT_NAME} ${LIBRARIES} ${TEST_LIBRARIES})

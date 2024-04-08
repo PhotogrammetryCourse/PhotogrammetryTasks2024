@@ -7,5 +7,6 @@ cd ceres-solver-2.0.0
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/opt/ceres-solver200 ..
-make
+njobs=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l` # https://stackoverflow.com/a/23378780
+make -j{njobs} # njobs - число потоков которое будет использоваться для компиляции (по числу ядер)
 sudo make install

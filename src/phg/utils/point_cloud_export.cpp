@@ -34,6 +34,8 @@ namespace {
         ~DataExporter();
         void exportToFile();
 
+        cv::Mat normals;
+
     };
 
 // Dictionary for file format
@@ -101,8 +103,13 @@ namespace {
                    "element vertex " << numElem << std::endl <<
                    "property float x" << std::endl <<
                    "property float y" << std::endl <<
-                   "property float z" << std::endl <<
-                   "property uchar red" << std::endl <<
+                   "property float z" << std::endl;
+        if (!normals.empty() && format == FileFormat::PLY_BIN_BIGEND) {
+            filestream << "property float nx" << std::endl <<
+                   "property float ny" << std::endl <<
+                   "property float nz" << std::endl;
+        }
+        filestream << "property uchar red" << std::endl <<
                    "property uchar green" << std::endl <<
                    "property uchar blue" << std::endl <<
                    "end_header" << std::endl;
@@ -111,6 +118,10 @@ namespace {
 
         // Pointer to data
         const float* pData = data.ptr<float>(0);
+        const float* nData = nullptr;
+        if (!normals.empty()) {
+            nData = normals.ptr<float>(0);
+        }
         const unsigned char* pColor = colors.ptr<unsigned char>(0);
         const unsigned long numIter = 3*numElem;                            // Number of iteration (3 channels * numElem)
         const bool hostIsLittleEndian = isLittleEndian();
@@ -131,6 +142,19 @@ namespace {
                             bufferXYZ = pData[i+j];
                             filestream.write(reinterpret_cast<const char *>(&bufferXYZ),    // Non compiled cast to char array
                                              sizeof(bufferXYZ));
+                        }
+                    }
+                    if (nData != nullptr) {
+                        for (unsigned int j = 0; j<3; j++) {                                    // Loop through 3 coordinates
+                            if (hostIsLittleEndian) {
+                                bufferXYZ = ReverseFloat(nData[i+j]);                        // Convert from host to network (Big endian)
+                                filestream.write(reinterpret_cast<const char *>(&bufferXYZ),    // Non compiled cast to char array
+                                                 sizeof(bufferXYZ));
+                            } else {
+                                bufferXYZ = nData[i+j];
+                                filestream.write(reinterpret_cast<const char *>(&bufferXYZ),    // Non compiled cast to char array
+                                                 sizeof(bufferXYZ));
+                            }
                         }
                     }
                     for (int j = 2; j>=0; j--) {
@@ -183,7 +207,7 @@ namespace {
     }
 }
 
-void phg::exportPointCloud(const std::vector<cv::Vec3d> &point_cloud, const std::string &path, const std::vector<cv::Vec3b> &point_cloud_colors_bgr)
+void phg::exportPointCloud(const std::vector<cv::Vec3d> &point_cloud, const std::string &path, const std::vector<cv::Vec3b> &point_cloud_colors_bgr, const std::vector<cv::Vec3d> &point_cloud_normal)
 {
     if (!point_cloud_colors_bgr.empty() && point_cloud_colors_bgr.size() != point_cloud.size()) {
         throw std::runtime_error("!point_cloud_colors_bgr.empty() && point_cloud_colors_bgr.size() != point_cloud.size()");
@@ -191,14 +215,21 @@ void phg::exportPointCloud(const std::vector<cv::Vec3d> &point_cloud, const std:
 
     cv::Mat coords3d(1, point_cloud.size(), CV_32FC3);
     cv::Mat img(1, point_cloud.size(), CV_8UC3);
+    cv::Mat normals(1, point_cloud.size(), CV_32FC3);
 
     for (int i = 0; i < (int) point_cloud.size(); ++i) {
         cv::Vec3f x = point_cloud[i];
         cv::Vec3b c = point_cloud_colors_bgr.empty() ? cv::Vec3b{200, 200, 200} : point_cloud_colors_bgr[i];
         coords3d.at<cv::Vec3f>(0, i) = x;
         img.at<cv::Vec3b>(0, i) = c;
+        if (!point_cloud_normal.empty()) {
+            normals.at<cv::Vec3f>(0, i) = point_cloud_normal[i];
+        } 
     }
 
     DataExporter data(coords3d, img, path, FileFormat::PLY_BIN_BIGEND);
+    if (!point_cloud_normal.empty()) {
+        data.normals = normals;
+    }
     data.exportToFile();
 }

@@ -10,6 +10,16 @@ namespace phg {
 
     bool epipolarTest(const cv::Vec2d &pt0, const cv::Vec2d &pt1, const cv::Matx33d &F, double t);
 
+    // one track corresponds to one 3d point
+    class Track {
+    public:
+        Track() : disabled(false)
+        {}
+
+        bool disabled;
+        std::vector<std::pair<int, int>> img_kpt_pairs;
+    };
+
 
 
 }
