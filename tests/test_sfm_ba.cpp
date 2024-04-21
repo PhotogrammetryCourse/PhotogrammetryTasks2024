@@ -25,7 +25,7 @@
 #define ENABLE_BA                             1
 
 // TODO когда заработает при малом количестве фотографий - увеличьте это ограничение до 100 чтобы попробовать обработать все фотографии (если же успешно будут отрабаывать только N фотографий - отправьте PR выставив здесь это N)
-#define NIMGS_LIMIT                           10 // сколько фотографий обрабатывать (можно выставить меньше чтобы ускорить экспериментирование, или в случае если весь датасет не выравнивается)
+#define NIMGS_LIMIT                           100 // сколько фотографий обрабатывать (можно выставить меньше чтобы ускорить экспериментирование, или в случае если весь датасет не выравнивается)
 #define INTRINSICS_CALIBRATION_MIN_IMGS       5 // начиная со скольки камер начинать оптимизировать внутренние параметры камеры (фокальную длину и т.п.) - из соображений что "пока камер мало - наблюдений может быть недостаточно чтобы не сойтись к ложной внутренней модели камеры"
 
 #define ENABLE_INSTRINSICS_K1_K2              1 // TODO учитывать ли радиальную дисторсию - коэффициенты k1, k2 попробуйте с ним и и без saharov32, заметна ли разница?
@@ -141,14 +141,14 @@ TEST (SFM, ReconstructNViews) {
     std::vector<cv::Mat> imgs;
     std::vector<std::string> imgs_labels;
     {
-        std::ifstream in(std::string("data/src/datasets/") + DATASET_DIR + "/ordered_filenames.txt");
+        std::ifstream in(std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/src/datasets/") + DATASET_DIR + "/ordered_filenames.txt");
         size_t nimages = 0;
         in >> nimages;
         std::cout << nimages << " images" << std::endl;
         for (int i = 0; i < nimages; ++i) {
             std::string img_name;
             in >> img_name;
-            std::string img_path = std::string("data/src/datasets/") + DATASET_DIR + "/" + img_name;
+            std::string img_path = std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/src/datasets/") + DATASET_DIR + "/" + img_name;
             cv::Mat img = cv::imread(img_path);
 
             if (img.empty()) {
@@ -285,13 +285,13 @@ TEST (SFM, ReconstructNViews) {
         std::vector<vector3d> tie_points_and_cameras;
         std::vector<cv::Vec3b> tie_points_colors;
         generateTiePointsCloud(tie_points, tracks, keypoints, imgs, aligned, cameras, ncameras, tie_points_and_cameras, tie_points_colors);
-        phg::exportPointCloud(tie_points_and_cameras, std::string("data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras.ply", tie_points_colors);
+        phg::exportPointCloud(tie_points_and_cameras, std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras.ply", tie_points_colors);
 
 #if ENABLE_BA
         runBA(tie_points, tracks, keypoints, cameras, ncameras, calib);
 #endif
         generateTiePointsCloud(tie_points, tracks, keypoints, imgs, aligned, cameras, ncameras, tie_points_and_cameras, tie_points_colors);
-        phg::exportPointCloud(tie_points_and_cameras, std::string("data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras_ba.ply", tie_points_colors);
+        phg::exportPointCloud(tie_points_and_cameras, std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras_ba.ply", tie_points_colors);
     }
 
     // append remaining cameras one by one
@@ -363,7 +363,7 @@ TEST (SFM, ReconstructNViews) {
         std::vector<vector3d> tie_points_and_cameras;
         std::vector<cv::Vec3b> tie_points_colors;
         generateTiePointsCloud(tie_points, tracks, keypoints, imgs, aligned, cameras, ncameras, tie_points_and_cameras, tie_points_colors);
-        phg::exportPointCloud(tie_points_and_cameras, std::string("data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras.ply", tie_points_colors);
+        phg::exportPointCloud(tie_points_and_cameras, std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras.ply", tie_points_colors);
 
         // Запуск Bundle Adjustment
 #if ENABLE_BA
@@ -371,7 +371,7 @@ TEST (SFM, ReconstructNViews) {
 #endif
 
         generateTiePointsCloud(tie_points, tracks, keypoints, imgs, aligned, cameras, ncameras, tie_points_and_cameras, tie_points_colors);
-        phg::exportPointCloud(tie_points_and_cameras, std::string("data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras_ba.ply", tie_points_colors);
+        phg::exportPointCloud(tie_points_and_cameras, std::string("/home/flint/s4/Photogrammetry/PhotogrammetryTasks2024/data/debug/test_sfm_ba/") + DATASET_DIR + "/point_cloud_" + to_string(ncameras) + "_cameras_ba.ply", tie_points_colors);
     }
 }
 
