@@ -33,9 +33,9 @@
 #define INTRINSIC_K1_K2_MIN_IMGS              7 // начиная со скольки камер начинать оптимизировать k1, k2
 
 // TODO попробуйте повыключать эти фильтрации выбросов, насколько изменился результат?
-#define ENABLE_OUTLIERS_FILTRATION_3_SIGMA    0
-#define ENABLE_OUTLIERS_FILTRATION_COLINEAR   0
-#define ENABLE_OUTLIERS_FILTRATION_NEGATIVE_Z 0
+#define ENABLE_OUTLIERS_FILTRATION_3_SIGMA    1
+#define ENABLE_OUTLIERS_FILTRATION_COLINEAR   1
+#define ENABLE_OUTLIERS_FILTRATION_NEGATIVE_Z 1
 
 //________________________________________________________________________________
 // Datasets:
