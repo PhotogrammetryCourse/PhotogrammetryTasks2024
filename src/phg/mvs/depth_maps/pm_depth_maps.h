@@ -19,6 +19,9 @@ namespace phg {
     vector3d project  (const vector3d &global_point, const phg::Calibration &calibration, const matrix34d &PtoLocal);
     vector3d unproject(const vector3d &pixel,        const phg::Calibration &calibration, const matrix34d &PtoWorld);
 
+    void buildPoints(const cv::Mat &depth_map, const cv::Mat &img, const matrix34d &PtoLocal, const Calibration &calibration,
+                     std::vector<vector3d> &points, std::vector<double> &radiuses, std::vector<vector3d> &normals, std::vector<cv::Vec3b> &colors);
+
     class PMDepthMapsBuilder {
     public:
         PMDepthMapsBuilder(

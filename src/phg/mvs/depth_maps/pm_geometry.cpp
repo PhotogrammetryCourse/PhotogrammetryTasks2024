@@ -19,6 +19,11 @@ namespace phg {
     {
         return dot(v, v);
     }
+    
+    float norm(const vector3f &v)
+    {
+        return sqrtf(norm2(v));
+    }
 
     vector3f randomNormalObservedFromCamera(const matrix3d &RtoWorld, FastRandom &r)
     {

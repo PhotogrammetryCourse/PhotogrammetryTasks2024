@@ -14,6 +14,8 @@ namespace phg {
     
     float norm2(const vector3f &v);
 
+    float norm(const vector3f &v);
+
     vector3f randomNormalObservedFromCamera(const matrix3d &RtoWorld, FastRandom &r);
 
     bool intersectWithPlane(const vector3d &plane_point, const vector3d &plane_normal, const vector3d &ray_org, const vector3d &ray_dir, vector3d &global_intersection);
