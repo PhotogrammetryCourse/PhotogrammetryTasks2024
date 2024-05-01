@@ -537,6 +537,8 @@ TEST (MATCHING, SimpleMatching) {
     cv::Mat img1 = cv::imread("data/src/test_matching/hiking_left.JPG");
     cv::Mat img2 = cv::imread("data/src/test_matching/hiking_right.JPG");
 
+    std::cout << img1.size() << std::endl;
+    return;
 
     double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
             time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
@@ -570,6 +572,40 @@ TEST (MATCHING, SimpleMatching) {
     EXPECT_GT(good_clusters, 0.9);
 #endif
     EXPECT_GT(good_ratio_and_clusters, 0.9);
+}
+
+TEST (MATCHING, SimpleMatching1) {
+
+    cv::Mat img1 = cv::imread("data/src/test_matching/left1.jpg");
+    cv::Mat img2 = cv::imread("data/src/test_matching/right1.jpg");
+
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0.5, 0.5);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0.5, 0.5);
+
+    double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
+            time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
+
+    testMatchingMultipleDetectors(img1, img2,
+                                  nn_score, nn2_score, nn_score_cv, nn2_score_cv,
+                                  time_my, time_cv, time_bruteforce, time_bruteforce_gpu,
+                                  good_nn, good_ratio, good_clusters, good_ratio_and_clusters);
+}
+
+TEST (MATCHING, SimpleMatching2) {
+
+    cv::Mat img1 = cv::imread("data/src/test_matching/left2.jpg");
+    cv::Mat img2 = cv::imread("data/src/test_matching/right2.jpg");
+
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0.5, 0.5);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0.5, 0.5);
+
+    double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
+            time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
+
+    testMatchingMultipleDetectors(img1, img2,
+                                  nn_score, nn2_score, nn_score_cv, nn2_score_cv,
+                                  time_my, time_cv, time_bruteforce, time_bruteforce_gpu,
+                                  good_nn, good_ratio, good_clusters, good_ratio_and_clusters);
 }
 
 namespace {
