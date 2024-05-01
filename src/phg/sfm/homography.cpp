@@ -199,7 +199,7 @@ namespace {
         const int n_samples = 4;
         const float w = 0.5;
         const float p = 0.995;
-        const int n_trials = static_cast<int>(ceil(log(1 - p) / log(1 - pow(w, n_samples))));
+        const int n_trials = static_cast<int>(std::ceil(log(1 - p) / std::log(1 - std::pow(w, n_samples))));
 
         uint64_t seed = 1;
         const double reprojection_error_threshold_px = 2;
