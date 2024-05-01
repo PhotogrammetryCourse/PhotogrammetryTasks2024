@@ -576,8 +576,8 @@ TEST (MATCHING, SimpleMatching1) {
     cv::Mat img1 = cv::imread("data/src/test_matching/left1.jpg");
     cv::Mat img2 = cv::imread("data/src/test_matching/right1.jpg");
 
-    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0.5, 0.5);
-    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0.5, 0.5);
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0, 0);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0, 0);
 
     double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
             time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
@@ -593,8 +593,8 @@ TEST (MATCHING, SimpleMatching2) {
     cv::Mat img1 = cv::imread("data/src/test_matching/left2.jpg");
     cv::Mat img2 = cv::imread("data/src/test_matching/right2.jpg");
 
-    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0.5, 0.5);
-    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0.5, 0.5);
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0, 0);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0, 0);
 
     double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
             time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
@@ -785,6 +785,34 @@ TEST (STITCHING, SimplePanorama) {
 
     std::function<cv::Mat(const cv::Mat&, const cv::Mat&)> homography_builder = [](const cv::Mat &lhs, const cv::Mat &rhs){ return getHomography(lhs, rhs); };
     cv::Mat pano = phg::stitchPanorama({img1, img2}, {-1, 0}, homography_builder);
+    cv::imwrite("data/debug/test_matching/" + getTestSuiteName() + "_" + getTestName() + "_" + "panorama.png", pano);
+#endif
+}
+
+TEST (STITCHING, SimplePanorama2_1) {
+#if ENABLE_MY_MATCHING
+    cv::Mat img1 = cv::imread("data/src/test_matching/left2.jpg");
+    cv::Mat img2 = cv::imread("data/src/test_matching/right2.jpg");
+
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0, 0);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0, 0);
+
+    std::function<cv::Mat(const cv::Mat&, const cv::Mat&)> homography_builder = [](const cv::Mat &lhs, const cv::Mat &rhs){ return getHomography(lhs, rhs); };
+    cv::Mat pano = phg::stitchPanorama({img1, img2}, {-1, 0}, homography_builder);
+    cv::imwrite("data/debug/test_matching/" + getTestSuiteName() + "_" + getTestName() + "_" + "panorama.png", pano);
+#endif
+}
+
+TEST (STITCHING, SimplePanorama2_2) {
+#if ENABLE_MY_MATCHING
+    cv::Mat img1 = cv::imread("data/src/test_matching/left2.jpg");
+    cv::Mat img2 = cv::imread("data/src/test_matching/right2.jpg");
+
+    cv::resize(img1, img1, cv::Size(img1.size[1] / 4, img1.size[0] / 4), 0, 0);
+    cv::resize(img2, img2, cv::Size(img2.size[1] / 4, img2.size[0] / 4), 0, 0);
+
+    std::function<cv::Mat(const cv::Mat&, const cv::Mat&)> homography_builder = [](const cv::Mat &lhs, const cv::Mat &rhs){ return getHomography(lhs, rhs); };
+    cv::Mat pano = phg::stitchPanorama({img1, img2}, {1, -1}, homography_builder);
     cv::imwrite("data/debug/test_matching/" + getTestSuiteName() + "_" + getTestName() + "_" + "panorama.png", pano);
 #endif
 }
