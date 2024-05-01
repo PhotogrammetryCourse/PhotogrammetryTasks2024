@@ -17,8 +17,9 @@
 
 #include "utils/test_utils.h"
 
+#define DEBUG_STATE 0
 
-#define ENABLE_MY_SFM 0
+#define ENABLE_MY_SFM 1
 
 namespace {
 
@@ -108,6 +109,8 @@ namespace {
     }
 
 }
+
+#if !DEBUG_STATE
 
 #define TEST_EPIPOLAR_LINE(pt0, pt1, F, t, eps) \
 EXPECT_FALSE(phg::epipolarTest(pt0, pt1, F, std::max(0.0, t - eps))); \
@@ -350,6 +353,8 @@ TEST (SFM, TriangulationSimple) {
     EXPECT_LT(cv::norm(d), eps);
 }
 
+
+
 TEST (SFM, FmatrixMatchFiltering) {
 
 #if !ENABLE_MY_SFM
@@ -524,6 +529,8 @@ TEST (SFM, RelativePosition2View) {
     std::cout << "exporting " << point_cloud.size() << " points..." << std::endl;
     phg::exportPointCloud(point_cloud, "data/debug/test_sfm/point_cloud_2_cameras.ply", point_cloud_colors);
 }
+
+#endif
 
 TEST (SFM, Resection) {
 
