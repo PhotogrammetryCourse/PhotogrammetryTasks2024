@@ -537,9 +537,6 @@ TEST (MATCHING, SimpleMatching) {
     cv::Mat img1 = cv::imread("data/src/test_matching/hiking_left.JPG");
     cv::Mat img2 = cv::imread("data/src/test_matching/hiking_right.JPG");
 
-    std::cout << img1.size() << std::endl;
-    return;
-
     double nn_score, nn2_score, nn_score_cv, nn2_score_cv,
             time_my, time_cv, time_bruteforce, time_bruteforce_gpu, good_nn, good_ratio, good_clusters, good_ratio_and_clusters;
 
