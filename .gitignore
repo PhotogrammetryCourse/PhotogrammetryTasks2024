@@ -2,3 +2,14 @@
 .idea
 build
 cmake-build*
+**/cmake_install.cmake
+CMakeCache.txt
+libPhotogrammetry.a
+**/Makefile
+test_matching
+test_sift
+**/CMakeFiles
+lib
+**/CTestTestfile.cmake
+**/*.a
+libs/gpu/hexdumparray
