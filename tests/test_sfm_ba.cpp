@@ -40,17 +40,17 @@
 // Datasets:
 
 // достаточно чтобы у вас работало на этом датасете, тестирование на Travis CI тоже ведется на нем
-// #define DATASET_DIR                  "saharov32"
-// #define DATASET_DOWNSCALE            1 // картинки уже уменьшены в 4 раза (оригинальные вы можете скачать по ссылке из saharov32/LINK.txt)
-// #define DATASET_F                    (1585.5 / DATASET_DOWNSCALE)
+#define DATASET_DIR                  "saharov32"
+#define DATASET_DOWNSCALE            1 // картинки уже уменьшены в 4 раза (оригинальные вы можете скачать по ссылке из saharov32/LINK.txt)
+#define DATASET_F                    (1585.5 / DATASET_DOWNSCALE)
 
 // но если любопытно - для экспериментов предлагаются еще дополнительные датасеты
 // скачайте их фотографии в папку data/src/datasets/DATASETNAME/ по ссылке из файла LINK.txt в папке датасета:
 
 // saharov32 и herzjesu25 - приятные датасеты, вероятно их оба получится выравнять целиком
-#define DATASET_DIR                  "herzjesu25"
-#define DATASET_DOWNSCALE            2 // для ускорения SIFT
-#define DATASET_F                    (2761.5 / DATASET_DOWNSCALE) // see herzjesu25/K.txt
+// #define DATASET_DIR                  "herzjesu25"
+// #define DATASET_DOWNSCALE            2 // для ускорения SIFT
+// #define DATASET_F                    (2761.5 / DATASET_DOWNSCALE) // see herzjesu25/K.txt
 // TODO почему фокальная длина меняется от того что мы уменьшаем картинку? почему именно в такой пропорции? может надо домножать? или делить на downscale^2 ?
 
 // но temple47 - не вышло, я не разобрался в чем с ним проблема, может быть слишком мало точек, может критерии фильтрации выкидышей для него слишком строги
