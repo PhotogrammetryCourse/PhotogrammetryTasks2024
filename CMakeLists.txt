@@ -15,6 +15,7 @@ else()
     message(FATAL_ERROR "OpenMP not found! You need OpenMP for speedup on multicore CPUs!")
 endif()
 
+set(OpenCV_DIR C:/lib/build_opencv)
 find_package(OpenCV 4.5.1 REQUIRED)
 #      Linux:
 # скачайте Source code (opencv-4.5.1.zip) отсюда - https://github.com/opencv/opencv/releases распакуйте и скомпилируйте:
@@ -33,6 +34,7 @@ find_package(OpenCV 4.5.1 REQUIRED)
 #     Windows: (но рекомендуется использовать Linux)
 # Скачайте этот скрипт и следуйте инструкции - https://gist.github.com/PolarNick239/18036d942ae4b9aad9f1da756ce6c845#file-buildocv-sh-L10-L33
 
+set(Eigen3_DIR C:/lib/eigen-3.3.9/build)
 find_package(Eigen3 3.3 REQUIRED)
 #      Linux:
 # sudo apt install libeigen3-dev
@@ -47,6 +49,7 @@ find_package(Eigen3 3.3 REQUIRED)
 # 8) запомните папку куда была проведена установка Eigen3 - она имеет вид .../eigen-3.3.9/install_dir
 # 9) Добавьте в File->Settings->CMake options: -DEigen3_DIR=<ПОПРАВЬТЕ ЭТОТ ПУТЬ>/eigen-3.3.9/install_dir/share/eigen3/cmake
 
+set(Ceres_DIR C:/lib/ceres-solver-2.0.0/install_dir/CMake)
 find_package(Ceres 2.0.0 REQUIRED)
 #      Если вы на Mac - http://ceres-solver.org/installation.html#macos
 #      Linux:
