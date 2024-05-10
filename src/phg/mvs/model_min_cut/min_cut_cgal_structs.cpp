@@ -13,7 +13,7 @@ cgal_point_t to_cgal_point(vector3d p)
     return cgal_point_t(p[0], p[1], p[2]);
 }
 
-vertex_info_t::vertex_info_t(unsigned int camera_id, const cv::Vec3b &color) : color(color)
+vertex_info_t::vertex_info_t(unsigned int camera_id, const cv::Vec3b &color, double radius) : color(color), radius(radius)
 {
     camera_ids.push_back(camera_id);
 }

@@ -70,7 +70,7 @@ void MinCutModelBuilder::appendToTriangulation(unsigned int camera_id, const vec
             }
         }
 
-        vertex_info_t p_info(camera_id, color);
+        vertex_info_t p_info(camera_id, color, r);
         if (to_merge) {
             nearest_vertex->info().merge(p_info);
         } else {
@@ -192,6 +192,10 @@ namespace {
         // выбираем среди предложенных фэйсов (треугольников, т.е. граней ячеек) тот что пересечен нашим лучем идущим из rayFrom в rayTo
         // а так же обновляем множество фейсов (треугольников) до актуального состояния по ту сторону пересеченного фейса (по ту сторону треугольника через который мы перешагнули)
 
+        if (facets.size() == 0)
+        {
+            std::cout << "Werid!\n";
+        }
         rassert(facets.size() > 0, 538947914120162);
 
         cgal_facet_t intersected_facet;
@@ -343,21 +347,49 @@ void MinCutModelBuilder::buildMesh(std::vector<cv::Vec3i> &mesh_faces, std::vect
             const vector3d ray_to_camera = cv::normalize(camera_center - point0);
             const double distance_to_camera = phg::norm(camera_center - point0);
 
+            // {
+            //     // хотим найти ячейку триангуляции лежащую внутри поверхности (т.е. сразу за этим лучем видимости camera_center->point0):
+            //     // давайте посмотрим на вершину, затем на все смежные с ней ячейки (тетрагедрончики), а затем возьмем все треугольники-границы этих ячеек (facets_around_point0),
+            //     // не опирающиеся на нашу текущую точку,
+            //     // иначе говоря мы смотрим на шарик из треугольников вокруг нашей вершины
+            //     // и теперь среди этих треугольников мы ищем тот что пересекается лучем идущим глубже за точку на поверхности
+            //     // этот треугольник - это грань искомой ячейки триангуляции внутри поверхности
+            //     std::vector<cgal_facet_t> cur_facets = facets_around_point0;
+            //     const cgal_facet_t intersected_facet = chooseIntersectedFacet(proxy->triangulation, point0, point0 + ray_from_camera, cur_facets, false);
+            //     rassert(intersected_facet != cgal_facet_t(), 2378213120305);
+            //
+            //     // это ячейка триангуляции лежащая под поверхностью (т.е. сразу за вершиной)
+            //     const cell_handle_t cell_after_point = intersected_facet.first;
+            //     // добавляем пропускной способности из этой ячейки (из этого тетрагедрончика) к стоку
+            //     cell_after_point->info().t_capacity += LAMBDA_IN;
+            // }
             {
-                // хотим найти ячейку триангуляции лежащую внутри поверхности (т.е. сразу за этим лучем видимости camera_center->point0):
-                // давайте посмотрим на вершину, затем на все смежные с ней ячейки (тетрагедрончики), а затем возьмем все треугольники-границы этих ячеек (facets_around_point0),
-                // не опирающиеся на нашу текущую точку,
-                // иначе говоря мы смотрим на шарик из треугольников вокруг нашей вершины
-                // и теперь среди этих треугольников мы ищем тот что пересекается лучем идущим глубже за точку на поверхности
-                // этот треугольник - это грань искомой ячейки триангуляции внутри поверхности
                 std::vector<cgal_facet_t> cur_facets = facets_around_point0;
-                const cgal_facet_t intersected_facet = chooseIntersectedFacet(proxy->triangulation, point0, point0 + ray_from_camera, cur_facets, false);
-                rassert(intersected_facet != cgal_facet_t(), 2378213120305);
+                int steps = 0;
+                while (cur_facets.size() > 0)
+                {
+                    const cgal_facet_t intersected_facet = chooseIntersectedFacet(
+                        proxy->triangulation, point0, point0 + ray_from_camera, cur_facets, false);
+                    rassert(intersected_facet != cgal_facet_t() || steps == 0, 1980743028917);
+                    if (intersected_facet == cgal_facet_t() && steps == 0) {
+                        break;
+                    }
+                    plane_t facet_plane(intersected_facet);
+                    double distance_from_surface = facet_plane.distanceToIntersection(point0, ray_from_camera);
+                    const cgal_facet_t mirrored_intersected_facet = proxy->triangulation.mirror_facet(intersected_facet);
 
-                // это ячейка триангуляции лежащая под поверхностью (т.е. сразу за вершиной)
-                const cell_handle_t cell_after_point = intersected_facet.first;
-                // добавляем пропускной способности из этой ячейки (из этого тетрагедрончика) к стоку
-                cell_after_point->info().t_capacity += LAMBDA_IN;
+                    const cell_handle_t next_cell = mirrored_intersected_facet.first;
+                    const int next_cell_facet_subindex = mirrored_intersected_facet.second;
+                    rassert(next_cell_facet_subindex >= 0 && next_cell_facet_subindex < 4, 238129481240292);
+                    // предыдущая всмысле шагания ячейка (та что ближе к точке)
+                    const cell_handle_t prev_cell = next_cell->neighbor(next_cell_facet_subindex);
+                    if (distance_from_surface > vi->info().radius * 0.5)
+                    {
+                        prev_cell->info().t_capacity += LAMBDA_IN;
+                        break;
+                    }
+                    steps += 1;
+                }
             }
 
             // шагаем от точки до камеры выставляя веса на треугольниках (они же ребра в графе) которые пересекаются по мере трассировки луча
@@ -400,7 +432,9 @@ void MinCutModelBuilder::buildMesh(std::vector<cv::Vec3i> &mesh_faces, std::vect
                 prev_distance = distance_from_surface;
 
                 // увеличиваем пропускную способность на треугольнике-ребре (в направлении от камеры к точке)
-                next_cell->info().facets_capacities[next_cell_facet_subindex] += LAMBDA_OUT;
+                auto sigma = 0.125;
+                auto coeff = 1.0 - std::exp(- (distance_from_surface * distance_from_surface) / (2.0 * sigma * sigma));
+                next_cell->info().facets_capacities[next_cell_facet_subindex] += LAMBDA_OUT * coeff;
 
                 if (cur_facets.size() == 0) {
                     // если на будущее у нас нет кандидатов-треугольников, значит мы закончили наш путь и следующая ячейка содержит нашу камеру
