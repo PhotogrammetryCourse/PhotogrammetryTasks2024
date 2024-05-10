@@ -11,7 +11,7 @@
 #include "opencv2/core/core.hpp"
 #include <fstream>
 #include <iomanip>
-
+#include <filesystem>
 
 namespace {
 
@@ -227,6 +227,7 @@ void phg::exportPointCloud(const std::vector<cv::Vec3d> &point_cloud, const std:
         } 
     }
 
+    std::filesystem::create_directories(std::filesystem::path { path }.parent_path());
     DataExporter data(coords3d, img, path, FileFormat::PLY_BIN_BIGEND);
     if (!point_cloud_normal.empty()) {
         data.normals = normals;
