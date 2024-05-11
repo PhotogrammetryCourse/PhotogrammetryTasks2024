@@ -22,7 +22,7 @@
 
 #define ENABLE_MY_SFM 1
 
-#define DEBUG 1
+#define DEBUG 0
 
 namespace {
 
@@ -262,6 +262,10 @@ TEST (SFM, EmatrixSimple) {
 
 TEST (SFM, EmatrixDecomposeSimple) {
 
+#if DEBUG
+return;
+#endif
+
 #if !ENABLE_MY_SFM
     return;
 #endif
@@ -304,6 +308,7 @@ TEST (SFM, EmatrixDecomposeSimple) {
     double rms2 = matRMS(E, E2);
     double rms3 = matRMS(E1, E2);
 
+    std::cout << "F: \n" << F << std::endl;
     std::cout << "E: \n" << E << std::endl;
     std::cout << "E1: \n" << E1 << std::endl;
     std::cout << "E2: \n" << E2 << std::endl;

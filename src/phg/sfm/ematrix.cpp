@@ -18,9 +18,12 @@ namespace {
         copy(Ecv, E);
 
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::VectorXd singular_values = svd.singularValues();
-        singular_values(2) = 0;
-        E = svd.matrixU() * singular_values.asDiagonal() * svd.matrixV().transpose();
+
+        Eigen::MatrixXd singular = Eigen::MatrixXd::Zero(3, 3);
+        singular(0, 0) = svd.singularValues()[0];
+        singular(1, 1) = svd.singularValues()[0];
+
+        E = svd.matrixU() * singular * svd.matrixV().transpose();
 
         copy(E, Ecv);
     }
@@ -59,7 +62,15 @@ namespace {
         return result;
     }
 
-    bool depthTest(const vector2d &m0, const vector2d &m1, const phg::Calibration &calib0, const phg::Calibration &calib1, const matrix34d &P0, const matrix34d &P1)
+    bool depthTest
+    (
+          const vector2d &m0
+        , const vector2d &m1
+        , const phg::Calibration &calib0
+        , const phg::Calibration &calib1
+        , const matrix34d &P0
+        , const matrix34d &P1
+    )
     {
         // скомпенсировать калибровки камер
         vector3d p0 = calib0.unproject(m0);
@@ -69,7 +80,8 @@ namespace {
         matrix34d Ps[2] = {P0, P1};
 
         vector4d X = phg::triangulatePoint(Ps, ps, 2);
-        if (X[3] != 0) {
+        if (X[3] != 0)
+        {
             X /= X[3];
         }
 
@@ -85,9 +97,19 @@ namespace {
 // Это дополнительное ограничение позволяет разложить существенную матрицу с точностью до 4 решений, вместо произвольного проективного преобразования (см. Hartley & Zisserman p.258)
 // Обычно мы можем использовать одну общую калибровку, более менее верную для большого количества реальных камер и с ее помощью выполнить
 // первичное разложение существенной матрицы (а из него, взаимное расположение камер) для последующего уточнения методом нелинейной оптимизации
-void phg::decomposeEMatrix(cv::Matx34d &P0, cv::Matx34d &P1, const cv::Matx33d &Ecv, const std::vector<cv::Vec2d> &m0, const std::vector<cv::Vec2d> &m1, const Calibration &calib0, const Calibration &calib1)
+void phg::decomposeEMatrix
+(
+      cv::Matx34d &P0
+    , cv::Matx34d &P1
+    , const cv::Matx33d &Ecv
+    , const std::vector<cv::Vec2d> &m0
+    , const std::vector<cv::Vec2d> &m1
+    , const Calibration &calib0
+    , const Calibration &calib1
+)
 {
-    if (m0.size() != m1.size()) {
+    if (m0.size() != m1.size())
+    {
         throw std::runtime_error("decomposeEMatrix : m0.size() != m1.size()");
     }
 
@@ -147,21 +169,26 @@ void phg::decomposeEMatrix(cv::Matx34d &P0, cv::Matx34d &P1, const cv::Matx33d &
     // need to select best of 4 solutions: 3d points should be in front of cameras (positive depths)
     int best_count = 0;
     int best_idx = -1;
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         int count = 0;
-        for (int j = 0; j < (int) m0.size(); ++j) {
-            if (depthTest(m0[j], m1[j], calib0, calib1, P0, P1s[i])) {
+        for (int j = 0; j < (int) m0.size(); ++j)
+        {
+            if (depthTest(m0[j], m1[j], calib0, calib1, P0, P1s[i]))
+            {
                 ++count;
             }
         }
         std::cout << "decomposeEMatrix: count: " << count << std::endl;
-        if (count > best_count) {
+        if (count > best_count)
+        {
             best_count = count;
             best_idx = i;
         }
     }
 
-    if (best_count == 0) {
+    if (best_count == 0)
+    {
         throw std::runtime_error("decomposeEMatrix : can't decompose ematrix");
     }
 
@@ -181,7 +208,8 @@ void phg::decomposeUndistortedPMatrix(cv::Matx33d &R, cv::Vec3d &O, const cv::Ma
     O(1) = O_mat(1);
     O(2) = O_mat(2);
 
-    if (cv::determinant(R) < 0) {
+    if (cv::determinant(R) < 0)
+    {
         R *= -1;   
     }
 }
