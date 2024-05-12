@@ -344,7 +344,13 @@ void MinCutModelBuilder::buildMesh(std::vector<cv::Vec3i> &mesh_faces, std::vect
     timer rays_traversing_t;
     double avg_triangles_intersected_per_ray = 0;
     size_t nrays = 0;
-    for (auto vi = proxy->triangulation.all_vertices_begin(); vi != proxy->triangulation.all_vertices_end(); ++vi) {
+    std::vector<vertex_handle_t> vertices;
+    for (auto vi = proxy->triangulation.all_vertices_begin(); vi != proxy->triangulation.all_vertices_end(); ++vi)
+    {
+        vertices.push_back(vi);
+    }
+    for (int i = 0; i < vertices.size(); ++i) {
+        auto vi = vertices[i];
         if (vi->info().camera_ids.size() == 0) {
             // TODO 2004 подумайте и напишите тут какие вершины бывают без камер вообще? почему мы их пропускаем? что и почему случится если убрать это пропускание?
             continue;
@@ -353,7 +359,6 @@ void MinCutModelBuilder::buildMesh(std::vector<cv::Vec3i> &mesh_faces, std::vect
         const vector3d point0 = from_cgal_point(vi->point());
         const std::vector<cgal_facet_t> facets_around_point0 = fetchVertexBoundingFacets(proxy->triangulation, vi);
 
-#pragma omp parallel for
         for (unsigned int ci = 0; ci < vi->info().camera_ids.size(); ++ci) {
             // для каждой вершины триангуляции point0 и каждой камеры к которой эта точка имеет отношение (т.е. содержится где-то в карте глубины)
 
