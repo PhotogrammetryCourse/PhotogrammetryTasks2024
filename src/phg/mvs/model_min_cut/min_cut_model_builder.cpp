@@ -72,7 +72,20 @@ void MinCutModelBuilder::appendToTriangulation(unsigned int camera_id, const vec
 
         vertex_info_t p_info(camera_id, color, r);
         if (to_merge) {
-            nearest_vertex->info().merge(p_info);
+            vector3d np = from_cgal_point(nearest_vertex->point());
+            auto nv_info = nearest_vertex->info();
+
+            double np_weight = static_cast<double>(nv_info.weight);
+            vector3d avg_pos = (p + np * np_weight) / (1.0 + np_weight);
+            auto color_d = vector3d(color(0), color(1), color(2));
+            auto np_color_d = vector3d(nv_info.color(0), nv_info.color(1), nv_info.color(2));
+            auto avg_color_d = (color_d + np_color_d * np_weight) / (1.0 + np_weight);
+            auto avg_color = cv::Vec3b(avg_color_d(0), avg_color_d(1), avg_color_d(2));
+
+            nv_info.merge(p_info);
+            nv_info.color = avg_color;
+            proxy->triangulation.remove(nearest_vertex);
+            points_to_insert.push_back(std::make_pair(to_cgal_point(avg_pos), nv_info));
         } else {
             points_to_insert.push_back(std::make_pair(to_cgal_point(p), p_info));
         }

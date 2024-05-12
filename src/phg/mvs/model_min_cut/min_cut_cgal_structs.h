@@ -13,8 +13,9 @@ struct vertex_info_t {
     cv::Vec3b                 color;
     size_t                    vertex_on_surface_id;
     double                    radius;
+    int                       weight;
 
-    vertex_info_t() : color(0, 0, 255) // red color, BGR convention (OpenCV compatible)
+    vertex_info_t() : color(0, 0, 255), weight(1) // red color, BGR convention (OpenCV compatible)
     {}
 
     vertex_info_t(unsigned int camera_id, const cv::Vec3b &color, double radius);
