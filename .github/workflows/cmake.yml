@@ -40,3 +40,7 @@ jobs:
       - name: test_matching
         working-directory: ${{github.workspace}}
         run: ./build/test_matching
+
+      - name: test_sfm
+        working-directory: ${{github.workspace}}
+        run: ./build/test_sfm
