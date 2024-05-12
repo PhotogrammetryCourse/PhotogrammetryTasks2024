@@ -200,7 +200,8 @@ namespace {
 
     cgal_facet_t chooseIntersectedFacet(const triangulation_t& triangulation,
                                         const vector3d &rayFrom, const vector3d &rayTo,
-                                        std::vector<cgal_facet_t> &facets, bool checkFinish=true)
+                                        std::vector<cgal_facet_t> &facets, bool checkFinish=true,
+                                        std::optional<cell_handle_t> cell_with_ray_finish_arg = std::nullopt)
     {
         // выбираем среди предложенных фэйсов (треугольников, т.е. граней ячеек) тот что пересечен нашим лучем идущим из rayFrom в rayTo
         // а так же обновляем множество фейсов (треугольников) до актуального состояния по ту сторону пересеченного фейса (по ту сторону треугольника через который мы перешагнули)
@@ -240,7 +241,9 @@ namespace {
         rassert(!triangulation.is_infinite(prev_cell), 23891294812199);
         if (checkFinish) {
             rassert(!triangulation.is_infinite(next_cell), 23891294812200); // таким образом мы например косвенно проверяем что наш критерий остановки по ячейке содержащей камеру - срабатывает, и мы не уходим на бесконечность
-            const cell_handle_t cell_with_ray_finish = triangulation.locate(to_cgal_point(rayTo));
+            const cell_handle_t cell_with_ray_finish = cell_with_ray_finish_arg.has_value()
+                ? cell_with_ray_finish_arg.value()
+                : triangulation.locate(to_cgal_point(rayTo));
             if (next_cell == cell_with_ray_finish) {
                 // раз мы дошли до ячейки содержащей конец нашего пути - дальше идти не требуется, т.е. оставляем список будущих треугольников-кандидатов пустым
                 return intersected_facet;
@@ -398,8 +401,10 @@ void MinCutModelBuilder::buildMesh(std::vector<cv::Vec3i> &mesh_faces, std::vect
 
             double prev_distance = 0.0;
             size_t steps = 0;
+            auto last_cell = proxy->triangulation.locate(to_cgal_point(camera_center));
             while (cur_facets.size() > 0) {
-                const cgal_facet_t intersected_facet = chooseIntersectedFacet(proxy->triangulation, point0, camera_center, cur_facets);
+                const cgal_facet_t intersected_facet = chooseIntersectedFacet(
+                    proxy->triangulation, point0, camera_center, cur_facets, true, last_cell);
                 rassert(intersected_facet != cgal_facet_t() || steps == 0, 2381924128490303); // всегда должно находится пересечение (иначе это означает что мы потерялись по пути, вместо того чтобы однажды добраться до ячейки содержащей камеру)
                 if (intersected_facet == cgal_facet_t() && steps == 0) {
                     // единственное исключение - это когда отрезок из вершины до камеры не пересекает ни одного треугольника (т.е. когда камера находится в смежной с вершиной ячейке)
