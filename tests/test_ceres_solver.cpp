@@ -67,6 +67,7 @@ TEST (CeresSolver, HelloWorld1) {
     std::cout << "f(x):  " << initial_residual << " -> " << final_residual << std::endl;
     std::cout << "f'(x): " << initial_jacobian << " -> " << final_jacobian << std::endl;
     // TODO 1: почему результирующая производная не ноль? мы ведь должны были сойтись в минимуме функции 0.5*(10-x)^2
+    // потому что f(x) = 10 - x => f'(x) == -1 везде
 
     ASSERT_NEAR(cur_x, 10.0, 1e-6);
 }
@@ -132,7 +133,7 @@ public:
         // Поэтому например для вычисления квадрата - можно просто перемножить T-переменные, а для вычисления произвольной степени - ceres::pow(x, y)
         T dx = queryPoint[0] - center[0];
         T dy = queryPoint[1] - center[1];
-        residual[0] = a*dx*dx + b*dy*dy - center[2];
+        residual[0] = a*dx*dx + b*dy*dy + center[2] - queryPoint[2];
         return true;
     }
 protected:
@@ -158,10 +159,9 @@ TEST (CeresSolver, HelloWorld2) {
     ceres::CostFunction* paraboloid_cost_function = new ceres::AutoDiffCostFunction<ResidualToParaboloid, 1, 3>
             (new ResidualToParaboloid(paraboloid_center, paraboloid_a, paraboloid_b));
 
-    return; // TODO 2 удалите эту строку, затем
     // нарисуйте систему координат на бумажке чтобы найти координаты пересечения прямой и параболоида (параболоид и прямые - простые, поэтому пересечь их довольно просто)
     // и подставьте найденные координаты эталонного ответа в массив:
-    const double expected_point_solution[3] = {-1000.0, -1000.0, -1000.0};
+    const double expected_point_solution[3] = {10.0, 5.0, 200.0};
     {
         // Проверим что невязка эталонного решения нулевая для обоих функций невязки
         const double* params[1];
@@ -225,7 +225,7 @@ TEST (CeresSolver, HelloWorld2) {
     }
 
     for (int d = 0; d < 3; ++d) {
-//        EXPECT_NEAR(point[d], expected_point_solution[d], 1e-4);
+        EXPECT_NEAR(point[d], expected_point_solution[d], 1e-4);
         // TODO 3: раскомментируйте^, почему он находит не то что ожидалось?
         // либо мы набагали в коде, либо в аналитическом поиске правильного ответа на бумажке (проверьте вычисления на бумажке)
         // если бага в коде, то первые подозреваемые - две функции невязки (только там есть содержательный код)
@@ -260,7 +260,7 @@ public:
         // Блок параметров - line=[a, b, c] - задает прямую вида ax+by+c=0
         // TODO 5 посчитайте единственную невязку - расстояние от нашей точки-замера до текущего состояния прямой (для извлечения корня, помня про T=Jet, нужно использовать ceres::sqrt):
         // обратите внимание что расстояние лучше оставить знаковым, т.к. тогда эта невязка будет хорошо дифференцироваться при расстоянии около нуля
-//        residual[0] = ;
+        residual[0] = (line[0] * samplePoint[0] + line[1] * samplePoint[1] + line[2]) / ceres::sqrt(line[0] * line[0] + line[1] * line[1]);
         return true;
     }
 protected:
@@ -275,7 +275,7 @@ double calcLineY(double x, const double* abc) {
 double calcDistanceToLine2D(double x, double y, const double* abc) {
     double dist = abc[0] * x + abc[1] * y + abc[2];
     dist /= sqrt(abc[0] * abc[0] + abc[1] * abc[1]);
-    return dist;
+    return std::abs(dist);
 }
 
 void evaluateLine(const std::vector<double_2> &points, const double* line, double sigma, double &fitted_inliers_fraction, double &mean_inliers_distance);
@@ -348,7 +348,6 @@ void evaluateLineFitting(double sigma, double &fitted_inliers_fraction, double &
                 1, // количество невязок (размер искомого residual массива переданного в функтор, т.е. размерность искомой невязки, у нас это просто расстояние до прямой)
                 3> // число параметров в каждом блоке параметров, у нас один блок параметров (искомая прямая) из трех ее параметров - a, b, c
                 (new PointObservationError(points[i]));
-        return; // TODO 6 удалите этот return сразу после выполнения TODO 5
 
         ceres::LossFunction* loss;
         if (use_huber) {
@@ -375,7 +374,7 @@ void evaluateLineFitting(double sigma, double &fitted_inliers_fraction, double &
         threshold *= 10.0; // ослабляем порог если есть выбросы и мы к ним не устойчивы (не робастны за счет loss-функции (функции потерь) Huber-а)
     }
     for (int d = 0; d < 3; ++d) {
-//        ASSERT_NEAR(line_params[d], ideal_line[d], threshold);
+        ASSERT_NEAR(line_params[d] / line_params[2], ideal_line[d] / ideal_line[2], threshold);
         // TODO 7 расскоментируйте сверку найденной прямой и эталонной
         // почему они расходятся? как это можно решить? придумайте хотя бы два способа:
         // - пост-обработкой - как-то поправив параметры прямой перед сверкой (при этом не меняя ее положение в пространстве)
@@ -386,15 +385,15 @@ void evaluateLineFitting(double sigma, double &fitted_inliers_fraction, double &
     // Оцениваем качество идеальной прямой
     double inliers_fraction, mse;
     evaluateLine(points, ideal_line, sigma, inliers_fraction, mse);
-//    ASSERT_GT(inliers_fraction, 0.99); // TODO 8 раскоментируйте, почему эта проверка падает? как поправить?
-//    ASSERT_LT(mse, 1.1 * sigma * sigma); // TODO 9 раскомментируйте, почему проверка падает? на каких тестах она падает, на каких проходит? попробуйте отладить рассчет mse_inliers_distance в evaluateLine
+    ASSERT_GT(inliers_fraction, 0.99 * (1.0 - outliers_fraction)); // TODO 8 раскоментируйте, почему эта проверка падает? как поправить?
+    ASSERT_LT(mse, 1.1 * sigma * sigma); // TODO 9 раскомментируйте, почему проверка падает? на каких тестах она падает, на каких проходит? попробуйте отладить рассчет mse_inliers_distance в evaluateLine
 
     // Оцениваем качество найденной прямой
     evaluateLine(points, line_params, sigma, inliers_fraction, mse);
     if (outliers_fraction == 0 || use_huber) {
         // TODO 10 раскоментируйте обе проверки, почему они падают? в каких тестах? поправьте (в т.ч. подобно тому как было с ослаблением порога выше)
-//        ASSERT_GT(inliers_fraction, 0.99);
-//        ASSERT_LT(mse, 1.1 * sigma * sigma);
+        ASSERT_GT(inliers_fraction, 0.99 * (1 - outliers_fraction));
+        ASSERT_LT(mse, 1.1 * sigma * sigma);
     }
 }
 

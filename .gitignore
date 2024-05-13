@@ -3,3 +3,12 @@
 build
 cmake-build*
 data/src/test_sfm/saharov/*.JPG
+2.0.0.zip
+ceres-solver-2.0.0
+Makefile
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/CMakeFiles
+**/CTestTestfile.cmake
+data
+
