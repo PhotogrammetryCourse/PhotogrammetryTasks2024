@@ -84,7 +84,9 @@ namespace {
             sumxx += (e[0] - sumx / m.size()) * (e[0] - sumx / m.size()),
             sumyy += (e[1] - sumy / m.size()) * (e[1] - sumy / m.size());
         }
-        return {1 / cv::sqrt(sumxx), 0, -sumx / m.size() / cv::sqrt(sumxx), 0, 1 / cv::sqrt(sumyy), -sumy / m.size() / cv::sqrt(sumyy), 0, 0, 1};
+        sumxx = std::sqrt(sumxx / m.size());
+        sumyy = std::sqrt(sumyy / m.size());
+        return {1 / sumxx, 0, -sumx / m.size() / sumxx, 0, 1 / sumyy, -sumy / m.size() / sumyy, 0, 0, 1};
     }
 
     cv::Vec2d transformPoint(const cv::Vec2d &pt, const cv::Matx33d &T)
@@ -124,9 +126,9 @@ namespace {
         // https://en.wikipedia.org/wiki/Random_sample_consensus#Parameters
         // будет отличаться от случая с гомографией
         const int n_samples = 8;
-        const double prob_ok = 0.6;
+        const double prob_ok = 0.42;
         const int n_trials = std::round(1 + 4 * std::log(1 - 0.999) / std::log(1 - std::pow(prob_ok, n_samples)));
-
+        std::cout << n_trials << std::endl;
         uint64_t seed = 1;
 
         int best_support = 0;
@@ -192,7 +194,7 @@ cv::Matx33d phg::composeFMatrix(const cv::Matx34d &P0, const cv::Matx34d &P1)
 {
     // compute fundamental matrix from general cameras
     // Hartley & Zisserman (17.3 - p412)
-    
+
     cv::Matx33d F;
 
 #define det4(a, b, c, d) \
@@ -216,6 +218,6 @@ cv::Matx33d phg::composeFMatrix(const cv::Matx34d &P0, const cv::Matx34d &P1)
         }
 
 #undef det4
-    
+
     return F;
 }
