@@ -210,7 +210,7 @@ TEST (SFM, FmatrixSimple) {
 
     std::vector<cv::Vec2d> pts0, pts1;
     std::srand(1);
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 15; ++i) {
         pts0.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
         pts1.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
     }
