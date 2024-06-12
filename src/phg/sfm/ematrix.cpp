@@ -18,7 +18,7 @@ namespace {
         copy(Ecv, E);
 
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        E = svd.matrixU() * Eigen::Vector3d({svd.singularValues()[0], svd.singularValues()[0], 0}).asDiagonal() * svd.matrixV();
+        E = svd.matrixU() * Eigen::Vector3d({svd.singularValues()[0], svd.singularValues()[0], 0}).asDiagonal() * svd.matrixV().transpose();
 
         copy(E, Ecv);
     }
