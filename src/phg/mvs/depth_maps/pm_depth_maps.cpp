@@ -7,8 +7,6 @@
 #include "pm_geometry.h"
 #include "pm_depth_maps_defines.h"
 
-#define SOFT_PERTURBATION 1
-
 namespace phg {
     
     matrix3d extractR(const matrix34d &P)

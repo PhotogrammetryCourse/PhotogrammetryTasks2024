@@ -20,11 +20,11 @@
 // Datasets:
 
 // достаточно чтобы у вас работало на этом датасете, тестирование на Travis CI тоже ведется на нем
-//#define DATASET_DIR                  "saharov32"
-//#define DATASET_DOWNSCALE            4
+#define DATASET_DIR                  "saharov32"
+#define DATASET_DOWNSCALE            4
 
-#define DATASET_DIR                  "temple47"
-#define DATASET_DOWNSCALE            8
+//#define DATASET_DIR                  "temple47"
+//#define DATASET_DOWNSCALE            8
 
 // скачайте картинки этого датасета в папку data/src/datasets/herzjesu25/ по ссылке из файла LINK.txt в папке датасета
 //#define DATASET_DIR                  "herzjesu25"
@@ -69,7 +69,7 @@ TEST (test_depth_maps_pm, AllDepthMaps) {
                                                  all_points, all_colors, all_normals);
         ++ndepth_maps;
 
-        std::string tie_points_filename = std::string("data/debug/test_depth_maps_pm/") + getTestName() + "/all_points_" + to_string(ndepth_maps) + ".ply";
+        std::string tie_points_filename = std::string("data/debug/test_depth_maps_pm/") + getTestName() + "/" + DATASET_DIR + "_all_points_" + to_string(ndepth_maps) + ".ply";
         phg::exportPointCloud(all_points, tie_points_filename, all_colors, all_normals);
     }
 }
