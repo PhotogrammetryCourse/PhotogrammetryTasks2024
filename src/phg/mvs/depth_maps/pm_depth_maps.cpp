@@ -470,8 +470,8 @@ namespace phg {
             }
         }
         double ntotal = width * height;
-        verbose_cout << to_percent(costs_n, ntotal)      << "% pixels with "      << (costs_sum / costs_n)           << " avg cost, ";
-        verbose_cout << to_percent(good_costs_n, ntotal) << "% pixels with good " << (good_costs_sum / good_costs_n) << " avg cost";
+        verbose_cout << to_percent(costs_n, ntotal)      << "% pixels with "      << costs_sum << "/" << costs_n << "=" << (costs_sum / costs_n) << " avg cost, ";
+        verbose_cout << to_percent(good_costs_n, ntotal) << "% pixels with good " << good_costs_sum << "/" << good_costs_n << "=" << (good_costs_sum / good_costs_n) << " avg cost";
         verbose_cout << std::endl;
     }
 

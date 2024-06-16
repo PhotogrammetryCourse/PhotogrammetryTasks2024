@@ -57,7 +57,7 @@ TEST (test_depth_maps_pm, AllDepthMaps) {
 
     for (size_t from = 0; from + to_shift <= full_dataset.ncameras; ++from) {
         size_t to = from + to_shift;
-        std::cout << "============================ " << "Range [" << from << "-" << to << "] " << "(total_cameras = " << full_dataset.ncameras << ")" << " ============================" << std::endl;
+        std::cout << "==================================== " << "Range [" << from << "-" << to - 1 << "] " << "(total_cameras = " << full_dataset.ncameras << ")" << " ====================================" << std::endl;
 
         Dataset dataset = full_dataset.subset(from, to);
 
