@@ -59,6 +59,14 @@ jobs:
 #      - name: Install OpenCL CPU driver
 #        run: sudo bash .github/scripts/install_intel_opencl.sh;
 
+      - name: Download dataset "herzjesu25"
+        run: |
+          cd data/src/datasets/herzjesu25
+          wget https://gist.githubusercontent.com/Yegorov/dc61c42aa4e89e139cd8248f59af6b3e/raw/20ac954e202fe6a038c2b4bb476703c02fe0df87/ya.py
+          chmod +x ya.py
+          ./ya.py $(head -1 LINK.txt) .
+          unzip *.zip
+
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
