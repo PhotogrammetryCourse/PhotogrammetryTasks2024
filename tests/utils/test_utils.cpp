@@ -213,7 +213,7 @@ Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale)
 
             vector3d diff = tie_point - point_test;
             double norm2 = phg::norm2(diff);
-            rassert(norm2 < 0.01, 241782412410125);
+            rassert(norm2 < 0.0001, 241782412410125);
 
             double depth = px[2];
             rassert(depth > 0.0, 238419481290132);

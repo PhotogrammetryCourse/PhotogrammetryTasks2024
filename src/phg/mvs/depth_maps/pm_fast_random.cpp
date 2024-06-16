@@ -1,6 +1,7 @@
 #include "pm_fast_random.h"
 
 #include <libutils/rasserts.h>
+#include <iomanip>
 
 
 // Returns pseudo-random value in range [min; max] (inclusive)
@@ -33,6 +34,11 @@ float phg::FastRandom::nextf(float min, float max) {
     rassert(result >= 0.0f, 23910121261046);
     rassert(result <= 1.0f, 23910121261047);
     result = min + result * (max - min);
+    if (!(result <= max)) {
+        std::cout << std::setprecision(20) << std::fixed << min << std::endl;
+        std::cout << std::setprecision(20) << std::fixed << result << std::endl;
+        std::cout << std::setprecision(20) << std::fixed << max << std::endl;
+    }
     rassert(result >= min, 23910121261049);
     rassert(result <= max, 23910121261050);
     return result;
