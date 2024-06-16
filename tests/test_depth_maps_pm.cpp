@@ -20,13 +20,11 @@
 // Datasets:
 
 // достаточно чтобы у вас работало на этом датасете, тестирование на Travis CI тоже ведется на нем
-//#define DATASET_DIR                  "saharov32"
-//#define DATASET_DOWNSCALE            4
+#define DATASET_DIR                  "saharov32"
+#define DATASET_DOWNSCALE            2
 
-#define DATASET_DIR                  "temple47"
-#define DATASET_DOWNSCALE            8
-#define FILTER_DARK_POINTS_PERCENT   40
-#define FILTER_DARK_POINTS_ALLOW     1.25
+//#define DATASET_DIR                  "temple47"
+//#define DATASET_DOWNSCALE            8
 
 // скачайте картинки этого датасета в папку data/src/datasets/herzjesu25/ по ссылке из файла LINK.txt в папке датасета
 //#define DATASET_DIR                  "herzjesu25"
@@ -72,28 +70,6 @@ TEST (test_depth_maps_pm, AllDepthMaps) {
         ++ndepth_maps;
 
         std::string tie_points_filename = std::string("data/debug/test_depth_maps_pm/") + getTestName() + "/" + DATASET_DIR + "_all_points_" + to_string(ndepth_maps) + ".ply";
-
-#ifdef FILTER_DARK_POINTS_PERCENT
-        std::vector<double> brightness;
-        for (const auto& e : all_colors) {
-            brightness.push_back(cv::norm(e));
-        }
-        size_t cnt_light = brightness.size() * FILTER_DARK_POINTS_PERCENT / 100;
-        std::nth_element(brightness.begin(), brightness.begin() + cnt_light, brightness.end());
-        std::vector<cv::Vec3d> light_points;
-        std::vector<cv::Vec3b> light_colors;
-        std::vector<cv::Vec3d> light_normals;
-        for (size_t i = 0; i < all_points.size(); i++) {
-            if (cv::norm(all_colors[i]) > FILTER_DARK_POINTS_ALLOW * brightness[cnt_light]) {
-                light_points.push_back(all_points[i]);
-                light_colors.push_back(all_colors[i]);
-                light_normals.push_back(all_normals[i]);
-            }
-        }
-        std::cout << "Saving " << light_points.size() << " points out of " << all_points.size() << std::endl;
-        phg::exportPointCloud(light_points, tie_points_filename, light_colors, light_normals);
-#else
         phg::exportPointCloud(all_points, tie_points_filename, all_colors, all_normals);
-#endif
     }
 }
