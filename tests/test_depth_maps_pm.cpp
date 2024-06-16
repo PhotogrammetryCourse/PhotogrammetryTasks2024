@@ -25,8 +25,8 @@
 
 #define DATASET_DIR                  "temple47"
 #define DATASET_DOWNSCALE            8
-#define FILTER_DARK_POINTS_PERCENT   25
-#define FILTER_DARK_POINTS_ALLOW     1.4
+#define FILTER_DARK_POINTS_PERCENT   40
+#define FILTER_DARK_POINTS_ALLOW     1.25
 
 // скачайте картинки этого датасета в папку data/src/datasets/herzjesu25/ по ссылке из файла LINK.txt в папке датасета
 //#define DATASET_DIR                  "herzjesu25"
