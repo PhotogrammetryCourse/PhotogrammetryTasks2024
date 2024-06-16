@@ -18,14 +18,42 @@ jobs:
           sudo apt install -y g++
           sudo apt install -y cmake
 
-      - name: Build and install OpenCV 4.5.1
+      - name: Restore OpenCV and Ceres Solver
+        id: restore-opencv-ceres-solver
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            opencv-4.5.1
+            ceres-solver-2.0.0
+          key: builds
+
+      - name: Build OpenCV 4.5.1
+        if: steps.restore-opencv-ceres-solver.outputs.cache-hit != 'true'
         run: sudo bash .github/scripts/install_opencv451.sh;
+
+      - name: Build Ceres Solver
+        if: steps.restore-opencv-ceres-solver.outputs.cache-hit != 'true'
+        run: sudo bash .github/scripts/install_ceres_solver200.sh
+
+      - name: Cache OpenCV and Ceres Solver
+        if: steps.restore-opencv-ceres-solver.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            opencv-4.5.1
+            ceres-solver-2.0.0
+          key: ${{ steps.restore-opencv-ceres-solver.outputs.cache-primary-key }}
 
       - name: Install Eigen 3
         run: sudo bash .github/scripts/install_eigen3.sh
 
-      - name: Install Ceres Solver
-        run: sudo bash .github/scripts/install_ceres_solver200.sh
+      - name: Install OpenCV 4.5.1 and Ceres Solver
+        run: |
+          cd opencv-4.5.1/build
+          sudo make install
+          cd ../..
+          cd ceres-solver-2.0.0/build
+          sudo make install
 
 #      - name: Install OpenCL CPU driver
 #        run: sudo bash .github/scripts/install_intel_opencl.sh;
