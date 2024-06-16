@@ -20,11 +20,11 @@
 // Datasets:
 
 // достаточно чтобы у вас работало на этом датасете, тестирование на Travis CI тоже ведется на нем
-#define DATASET_DIR                  "saharov32"
-#define DATASET_DOWNSCALE            4
+//#define DATASET_DIR                  "saharov32"
+//#define DATASET_DOWNSCALE            4
 
-//#define DATASET_DIR                  "temple47"
-//#define DATASET_DOWNSCALE            2
+#define DATASET_DIR                  "temple47"
+#define DATASET_DOWNSCALE            2
 
 // скачайте картинки этого датасета в папку data/src/datasets/herzjesu25/ по ссылке из файла LINK.txt в папке датасета
 //#define DATASET_DIR                  "herzjesu25"
@@ -32,8 +32,6 @@
 //________________________________________________________________________________
 
 TEST (test_depth_maps_pm, SingleDepthMap) {
-// TODO этот код надо раскомментировать чтобы запустить тестирование:
-/*
     Dataset dataset = loadDataset(DATASET_DIR, DATASET_DOWNSCALE);
     phg::PMDepthMapsBuilder builder(dataset.ncameras, dataset.cameras_imgs, dataset.cameras_imgs_grey, dataset.cameras_labels, dataset.cameras_P, dataset.calibration);
     
@@ -43,11 +41,9 @@ TEST (test_depth_maps_pm, SingleDepthMap) {
     dataset.ncameras = cameras_limit;
     cv::Mat depth_map, normal_map, cost_map;
     builder.buildDepthMap(ci, depth_map, cost_map, normal_map, dataset.cameras_depth_min[ci], dataset.cameras_depth_max[ci]);
-*/
 }
 
 TEST (test_depth_maps_pm, AllDepthMaps) {
-/* TODO этот код можно раскомментировать чтобы построить много карт глубины и сохранить их облака точек:
     Dataset full_dataset = loadDataset(DATASET_DIR, DATASET_DOWNSCALE);
 
     const size_t ref_camera_shift = 2;
@@ -75,5 +71,4 @@ TEST (test_depth_maps_pm, AllDepthMaps) {
         std::string tie_points_filename = std::string("data/debug/test_depth_maps_pm/") + getTestName() + "/all_points_" + to_string(ndepth_maps) + ".ply";
         phg::exportPointCloud(all_points, tie_points_filename, all_colors, all_normals);
     }
-*/
 }
