@@ -24,7 +24,7 @@
 //#define DATASET_DOWNSCALE            4
 
 #define DATASET_DIR                  "temple47"
-#define DATASET_DOWNSCALE            2
+#define DATASET_DOWNSCALE            8
 
 // скачайте картинки этого датасета в папку data/src/datasets/herzjesu25/ по ссылке из файла LINK.txt в папке датасета
 //#define DATASET_DIR                  "herzjesu25"
