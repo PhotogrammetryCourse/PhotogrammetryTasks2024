@@ -14,7 +14,7 @@
 #define COSTS_K_RATIO               1.2f
 #define COSTS_BEST_K_LIMIT          5
 
-#define SOFT_PERTURBATION           1
+#define SOFT_PERTURBATION           0
 
 #define VERBOSE_LOGGING
 #ifdef VERBOSE_LOGGING
