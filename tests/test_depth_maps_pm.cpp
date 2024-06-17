@@ -21,7 +21,7 @@
 
 // достаточно чтобы у вас работало на этом датасете, тестирование на Travis CI тоже ведется на нем
 #define DATASET_DIR                  "saharov32"
-#define DATASET_DOWNSCALE            2
+#define DATASET_DOWNSCALE            4
 
 //#define DATASET_DIR                  "temple47"
 //#define DATASET_DOWNSCALE            8
@@ -46,8 +46,8 @@ TEST (test_depth_maps_pm, SingleDepthMap) {
 TEST (test_depth_maps_pm, AllDepthMaps) {
     Dataset full_dataset = loadDataset(DATASET_DIR, DATASET_DOWNSCALE);
 
-    const size_t ref_camera_shift = 2;
-    const size_t to_shift = 5;
+    const size_t ref_camera_shift = 3;
+    const size_t to_shift = 7;
 
     std::vector<cv::Vec3d> all_points;
     std::vector<cv::Vec3b> all_colors;

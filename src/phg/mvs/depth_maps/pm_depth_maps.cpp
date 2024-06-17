@@ -119,7 +119,7 @@ namespace phg {
 
                     // 2) случайной пертурбации текущей гипотезы (мутация и уточнение того что уже смогли найти)
 #ifdef SOFT_PERTURBATION
-                    float w = 1.0f + 1.0f * (NITERATIONS - iter) / NITERATIONS; // decreasing from 2 to 1
+                    float w = 1.5f + 0.8f * (NITERATIONS - iter) / NITERATIONS; // decreasing from 2.3 to 1.5
                     dp = r.nextf(d0 / w, d0 * w);
                     np = cv::normalize(n0 + randomNormalObservedFromCamera(cameras_RtoWorld[ref_cam], r) * w / 4);
 #else
@@ -316,7 +316,7 @@ namespace phg {
         printCurrentStats();
 #endif
 #ifdef DEBUG_DIR
-        debugCurrentPoints(to_string(ref_cam) + "_" + to_string(iter) + "_propagation");
+        //debugCurrentPoints(to_string(ref_cam) + "_" + to_string(iter) + "_propagation");
 #endif
     }
 
