@@ -1,119 +1,113 @@
 #include <gtest/gtest.h>
 
 #include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui.hpp>
 
+#include <Eigen/SVD>
 #include <libutils/timer.h>
 #include <phg/matching/gms_matcher.h>
-#include <phg/sfm/fmatrix.h>
-#include <phg/sfm/ematrix.h>
-#include <phg/sfm/sfm_utils.h>
 #include <phg/sfm/defines.h>
-#include <Eigen/SVD>
-#include <phg/sfm/triangulation.h>
+#include <phg/sfm/ematrix.h>
+#include <phg/sfm/fmatrix.h>
 #include <phg/sfm/resection.h>
+#include <phg/sfm/sfm_utils.h>
+#include <phg/sfm/triangulation.h>
 #include <phg/utils/point_cloud_export.h>
 
 #include "utils/test_utils.h"
 
-
-#define ENABLE_MY_SFM 0
+#define ENABLE_MY_SFM 1
 
 namespace {
 
-    void filterMatchesF(const std::vector<cv::DMatch> &matches, const std::vector<cv::KeyPoint> keypoints_query,
-                        const std::vector<cv::KeyPoint> keypoints_train, const cv::Matx33d &F, std::vector<cv::DMatch> &result, double threshold_px)
-    {
-        result.clear();
+void filterMatchesF(const std::vector<cv::DMatch> &matches, const std::vector<cv::KeyPoint> keypoints_query,
+                    const std::vector<cv::KeyPoint> keypoints_train, const cv::Matx33d &F, std::vector<cv::DMatch> &result, double threshold_px) {
+    result.clear();
 
-        for (const cv::DMatch &match : matches) {
-            cv::Vec2f pt1 = keypoints_query[match.queryIdx].pt;
-            cv::Vec2f pt2 = keypoints_train[match.trainIdx].pt;
+    for (const cv::DMatch &match : matches) {
+        cv::Vec2f pt1 = keypoints_query[match.queryIdx].pt;
+        cv::Vec2f pt2 = keypoints_train[match.trainIdx].pt;
 
-            if (phg::epipolarTest(pt1, pt2, F, threshold_px)) {
-                result.push_back(match);
-            }
+        if (phg::epipolarTest(pt1, pt2, F, threshold_px)) {
+            result.push_back(match);
         }
     }
+}
 
-    // Fundamental matrix has to be of rank 2. See Hartley & Zisserman, p.243
-    bool checkFmatrixSpectralProperty(const matrix3d &Fcv)
-    {
-        Eigen::MatrixXd F;
-        copy(Fcv, F);
+// Fundamental matrix has to be of rank 2. See Hartley & Zisserman, p.243
+bool checkFmatrixSpectralProperty(const matrix3d &Fcv) {
+    Eigen::MatrixXd F;
+    copy(Fcv, F);
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::VectorXd s = svd.singularValues();
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::VectorXd s = svd.singularValues();
 
-        std::cout << "checkFmatrixSpectralProperty: s: " << s.transpose() << std::endl;
+    std::cout << "checkFmatrixSpectralProperty: s: " << s.transpose() << std::endl;
 
-        double thresh = 1e10;
-        return s[0] > thresh * s[2] && s[1] > thresh * s[2];
+    double thresh = 1e10;
+    return s[0] > thresh * s[2] && s[1] > thresh * s[2];
+}
+
+// Essential matrix has to be of rank 2, and two non-zero singular values have to be equal. See Hartley & Zisserman, p.257
+bool checkEmatrixSpectralProperty(const matrix3d &Fcv) {
+    Eigen::MatrixXd F;
+    copy(Fcv, F);
+
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::VectorXd s = svd.singularValues();
+
+    std::cout << "checkEmatrixSpectralProperty: s: " << s.transpose() << std::endl;
+
+    double thresh = 1e10;
+
+    bool rank2 = s[0] > thresh * s[2] && s[1] > thresh * s[2];
+    bool equal = (s[0] < (1.0 + thresh) * s[1]) && (s[1] < (1.0 + thresh) * s[0]);
+
+    return rank2 && equal;
+}
+
+template <typename MAT>
+double matRMS(const MAT &a, const MAT &b) {
+    MAT d = (a - b);
+    d = d.mul(d);
+    double rms = std::sqrt(cv::sum(d)[0] / (a.cols * a.rows));
+    return rms;
+}
+
+vector3d relativeOrientationAngles(const matrix3d &R0, const vector3d &O0, const matrix3d &R1, const vector3d &O1) {
+    vector3d a = R0 * vector3d{0, 0, 1};
+    vector3d b = O0 - O1;
+    vector3d c = R1 * vector3d{0, 0, 1};
+
+    double norma = cv::norm(a);
+    double normb = cv::norm(b);
+    double normc = cv::norm(c);
+
+    if (norma == 0 || normb == 0 || normc == 0) {
+        throw std::runtime_error("norma == 0 || normb == 0 || normc == 0");
     }
 
-    // Essential matrix has to be of rank 2, and two non-zero singular values have to be equal. See Hartley & Zisserman, p.257
-    bool checkEmatrixSpectralProperty(const matrix3d &Fcv)
-    {
-        Eigen::MatrixXd F;
-        copy(Fcv, F);
+    a /= norma;
+    b /= normb;
+    c /= normc;
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::VectorXd s = svd.singularValues();
+    vector3d cos_vals;
 
-        std::cout << "checkEmatrixSpectralProperty: s: " << s.transpose() << std::endl;
+    cos_vals[0] = a.dot(c);
+    cos_vals[1] = a.dot(b);
+    cos_vals[2] = b.dot(c);
 
-        double thresh = 1e10;
-
-        bool rank2 = s[0] > thresh * s[2] && s[1] > thresh * s[2];
-        bool equal = (s[0] < (1.0 + thresh) * s[1]) && (s[1] < (1.0 + thresh) * s[0]);
-
-        return rank2 && equal;
-    }
-
-    template <typename MAT>
-    double matRMS(const MAT &a, const MAT &b)
-    {
-        MAT d = (a - b);
-        d = d.mul(d);
-        double rms = std::sqrt(cv::sum(d)[0] / (a.cols * a.rows));
-        return rms;
-    }
-
-    vector3d relativeOrientationAngles(const matrix3d &R0, const vector3d &O0, const matrix3d &R1, const vector3d &O1)
-    {
-        vector3d a = R0 * vector3d{0, 0, 1};
-        vector3d b = O0 - O1;
-        vector3d c = R1 * vector3d{0, 0, 1};
-
-        double norma = cv::norm(a);
-        double normb = cv::norm(b);
-        double normc = cv::norm(c);
-
-        if (norma == 0 || normb == 0 || normc == 0) {
-            throw std::runtime_error("norma == 0 || normb == 0 || normc == 0");
-        }
-
-        a /= norma;
-        b /= normb;
-        c /= normc;
-
-        vector3d cos_vals;
-
-        cos_vals[0] = a.dot(c);
-        cos_vals[1] = a.dot(b);
-        cos_vals[2] = b.dot(c);
-
-        return cos_vals;
-    }
+    return cos_vals;
+}
 
 }
 
-#define TEST_EPIPOLAR_LINE(pt0, pt1, F, t, eps) \
-EXPECT_FALSE(phg::epipolarTest(pt0, pt1, F, std::max(0.0, t - eps))); \
-EXPECT_TRUE(phg::epipolarTest(pt0, pt1, F, t + eps));
+#define TEST_EPIPOLAR_LINE(pt0, pt1, F, t, eps)                           \
+    EXPECT_FALSE(phg::epipolarTest(pt0, pt1, F, std::max(0.0, t - eps))); \
+    EXPECT_TRUE(phg::epipolarTest(pt0, pt1, F, t + eps));
 
-TEST (SFM, EpipolarDist) {
+TEST(SFM, EpipolarDist) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -202,7 +196,7 @@ TEST (SFM, EpipolarDist) {
     }
 }
 
-TEST (SFM, FmatrixSimple) {
+TEST(SFM, FmatrixSimple) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -211,8 +205,8 @@ TEST (SFM, FmatrixSimple) {
     std::vector<cv::Vec2d> pts0, pts1;
     std::srand(1);
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
-        pts1.push_back({(double) (std::rand() % 100), (double) (std::rand() % 100)});
+        pts0.push_back({(double)(std::rand() % 100), (double)(std::rand() % 100)});
+        pts1.push_back({(double)(std::rand() % 100), (double)(std::rand() % 100)});
     }
 
     matrix3d F = phg::findFMatrix(pts0, pts1);
@@ -222,20 +216,21 @@ TEST (SFM, FmatrixSimple) {
     EXPECT_TRUE(checkFmatrixSpectralProperty(Fcv));
 }
 
-TEST (SFM, EmatrixSimple) {
+TEST(SFM, EmatrixSimple) {
 
 #if !ENABLE_MY_SFM
     return;
 #endif
 
     phg::Calibration calib(360, 240);
-    std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
+    std::cout << "EmatrixSimple: calib: \n"
+              << calib.K() << std::endl;
 
     std::vector<cv::Vec2d> pts0, pts1;
     std::srand(1);
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
-        pts1.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
+        pts0.push_back({(double)(std::rand() % calib.width()), (double)(std::rand() % calib.height())});
+        pts1.push_back({(double)(std::rand() % calib.width()), (double)(std::rand() % calib.height())});
     }
 
     matrix3d F = phg::findFMatrix(pts0, pts1, 10);
@@ -244,20 +239,21 @@ TEST (SFM, EmatrixSimple) {
     EXPECT_TRUE(checkEmatrixSpectralProperty(E));
 }
 
-TEST (SFM, EmatrixDecomposeSimple) {
+TEST(SFM, EmatrixDecomposeSimple) {
 
 #if !ENABLE_MY_SFM
     return;
 #endif
 
     phg::Calibration calib(360, 240);
-    std::cout << "EmatrixSimple: calib: \n" << calib.K() << std::endl;
+    std::cout << "EmatrixSimple: calib: \n"
+              << calib.K() << std::endl;
 
     std::vector<cv::Vec2d> pts0, pts1;
     std::srand(1);
     for (int i = 0; i < 8; ++i) {
-        pts0.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
-        pts1.push_back({(double) (std::rand() % calib.width()), (double) (std::rand() % calib.height())});
+        pts0.push_back({(double)(std::rand() % calib.width()), (double)(std::rand() % calib.height())});
+        pts1.push_back({(double)(std::rand() % calib.width()), (double)(std::rand() % calib.height())});
     }
 
     matrix3d F = phg::findFMatrix(pts0, pts1, 10);
@@ -288,9 +284,12 @@ TEST (SFM, EmatrixDecomposeSimple) {
     double rms2 = matRMS(E, E2);
     double rms3 = matRMS(E1, E2);
 
-    std::cout << "E: \n" << E << std::endl;
-    std::cout << "E1: \n" << E1 << std::endl;
-    std::cout << "E2: \n" << E2 << std::endl;
+    std::cout << "E: \n"
+              << E << std::endl;
+    std::cout << "E1: \n"
+              << E1 << std::endl;
+    std::cout << "E2: \n"
+              << E2 << std::endl;
     std::cout << "RMS1: " << rms1 << std::endl;
     std::cout << "RMS2: " << rms2 << std::endl;
     std::cout << "RMS3: " << rms3 << std::endl;
@@ -301,7 +300,7 @@ TEST (SFM, EmatrixDecomposeSimple) {
     EXPECT_LT(rms3, eps);
 }
 
-TEST (SFM, TriangulationSimple) {
+TEST(SFM, TriangulationSimple) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -317,28 +316,31 @@ TEST (SFM, TriangulationSimple) {
     double alpha = M_PI_4;
     double s = std::sin(alpha);
     double c = std::cos(alpha);
-    matrix3d R = { c, 0, s,
-                   0, 1, 0,
+    matrix3d R = {c, 0, s,
+                  0, 1, 0,
                   -s, 0, c};
     vector3d T = -R * O;
     matrix34d P1 = {
-             R(0, 0), R(0, 1), R(0, 2), T[0],
-             R(1, 0), R(1, 1), R(1, 2), T[1],
-             R(2, 0), R(2, 1), R(2, 2), T[2]
-    };
+        R(0, 0), R(0, 1), R(0, 2), T[0],
+        R(1, 0), R(1, 1), R(1, 2), T[1],
+        R(2, 0), R(2, 1), R(2, 2), T[2]};
 
     // x1
     vector3d x1 = {0, 0, 1};
 
-    std::cout << "P1:\n" << P1 << std::endl;
-    std::cout << "x2:\n" << P0 * X << std::endl;
-    std::cout << "x3:\n" << P1 * X << std::endl;
+    std::cout << "P1:\n"
+              << P1 << std::endl;
+    std::cout << "x2:\n"
+              << P0 * X << std::endl;
+    std::cout << "x3:\n"
+              << P1 * X << std::endl;
 
     matrix34d Ps[2] = {P0, P1};
     vector3d xs[2] = {x0, x1};
 
     vector4d X1 = phg::triangulatePoint(Ps, xs, 2);
-    std::cout << "X1:\n" << X1 << std::endl;
+    std::cout << "X1:\n"
+              << X1 << std::endl;
 
     EXPECT_NE(X1[3], 0);
     X1 /= X1[3];
@@ -350,7 +352,7 @@ TEST (SFM, TriangulationSimple) {
     EXPECT_LT(cv::norm(d), eps);
 }
 
-TEST (SFM, FmatrixMatchFiltering) {
+TEST(SFM, FmatrixMatchFiltering) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -365,17 +367,17 @@ TEST (SFM, FmatrixMatchFiltering) {
     cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
     std::vector<cv::KeyPoint> keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
-    detector->detectAndCompute( img1, cv::noArray(), keypoints1, descriptors1 );
-    detector->detectAndCompute( img2, cv::noArray(), keypoints2, descriptors2 );
+    detector->detectAndCompute(img1, cv::noArray(), keypoints1, descriptors1);
+    detector->detectAndCompute(img2, cv::noArray(), keypoints2, descriptors2);
 
     std::cout << "matching points..." << std::endl;
     std::vector<std::vector<DMatch>> knn_matches;
 
     Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-    matcher->knnMatch( descriptors1, descriptors2, knn_matches, 2 );
+    matcher->knnMatch(descriptors1, descriptors2, knn_matches, 2);
 
     std::vector<DMatch> good_matches(knn_matches.size());
-    for (int i = 0; i < (int) knn_matches.size(); ++i) {
+    for (int i = 0; i < (int)knn_matches.size(); ++i) {
         good_matches[i] = knn_matches[i][0];
     }
 
@@ -425,7 +427,7 @@ TEST (SFM, FmatrixMatchFiltering) {
     EXPECT_GT(good_matches_gms_plus_f.size(), 0.5 * good_matches_f.size());
 }
 
-TEST (SFM, RelativePosition2View) {
+TEST(SFM, RelativePosition2View) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -443,17 +445,17 @@ TEST (SFM, RelativePosition2View) {
     cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
     std::vector<cv::KeyPoint> keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
-    detector->detectAndCompute( img1, cv::noArray(), keypoints1, descriptors1 );
-    detector->detectAndCompute( img2, cv::noArray(), keypoints2, descriptors2 );
+    detector->detectAndCompute(img1, cv::noArray(), keypoints1, descriptors1);
+    detector->detectAndCompute(img2, cv::noArray(), keypoints2, descriptors2);
 
     std::cout << "matching points..." << std::endl;
     std::vector<std::vector<DMatch>> knn_matches;
 
     Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-    matcher->knnMatch( descriptors1, descriptors2, knn_matches, 2 );
+    matcher->knnMatch(descriptors1, descriptors2, knn_matches, 2);
 
     std::vector<DMatch> good_matches(knn_matches.size());
-    for (int i = 0; i < (int) knn_matches.size(); ++i) {
+    for (int i = 0; i < (int)knn_matches.size(); ++i) {
         good_matches[i] = knn_matches[i][0];
     }
 
@@ -481,9 +483,11 @@ TEST (SFM, RelativePosition2View) {
     phg::decomposeUndistortedPMatrix(R1, O1, P1);
 
     std::cout << "Camera positions: " << std::endl;
-    std::cout << "R0:\n" << R0 << std::endl;
+    std::cout << "R0:\n"
+              << R0 << std::endl;
     std::cout << "O0: " << O0.t() << std::endl;
-    std::cout << "R1:\n" << R1 << std::endl;
+    std::cout << "R1:\n"
+              << R1 << std::endl;
     std::cout << "O1: " << O1.t() << std::endl;
 
     {
@@ -498,7 +502,7 @@ TEST (SFM, RelativePosition2View) {
     std::vector<cv::Vec3b> point_cloud_colors;
 
     matrix34d Ps[2] = {P0, P1};
-    for (int i = 0; i < (int) good_matches_gms.size(); ++i) {
+    for (int i = 0; i < (int)good_matches_gms.size(); ++i) {
         vector3d ms[2] = {calib0.unproject(points1[i]), calib1.unproject(points2[i])};
         vector4d X = phg::triangulatePoint(Ps, ms, 2);
 
@@ -525,7 +529,7 @@ TEST (SFM, RelativePosition2View) {
     phg::exportPointCloud(point_cloud, "data/debug/test_sfm/point_cloud_2_cameras.ply", point_cloud_colors);
 }
 
-TEST (SFM, Resection) {
+TEST(SFM, Resection) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -543,17 +547,17 @@ TEST (SFM, Resection) {
     cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
     std::vector<cv::KeyPoint> keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
-    detector->detectAndCompute( img1, cv::noArray(), keypoints1, descriptors1 );
-    detector->detectAndCompute( img2, cv::noArray(), keypoints2, descriptors2 );
+    detector->detectAndCompute(img1, cv::noArray(), keypoints1, descriptors1);
+    detector->detectAndCompute(img2, cv::noArray(), keypoints2, descriptors2);
 
     std::cout << "matching points..." << std::endl;
     std::vector<std::vector<DMatch>> knn_matches;
 
     Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-    matcher->knnMatch( descriptors1, descriptors2, knn_matches, 2 );
+    matcher->knnMatch(descriptors1, descriptors2, knn_matches, 2);
 
     std::vector<DMatch> good_matches(knn_matches.size());
-    for (int i = 0; i < (int) knn_matches.size(); ++i) {
+    for (int i = 0; i < (int)knn_matches.size(); ++i) {
         good_matches[i] = knn_matches[i][0];
     }
 
@@ -581,9 +585,11 @@ TEST (SFM, Resection) {
     phg::decomposeUndistortedPMatrix(R1, O1, P1);
 
     std::cout << "Camera positions: " << std::endl;
-    std::cout << "R0:\n" << R0 << std::endl;
+    std::cout << "R0:\n"
+              << R0 << std::endl;
     std::cout << "O0: " << O0.t() << std::endl;
-    std::cout << "R1:\n" << R1 << std::endl;
+    std::cout << "R1:\n"
+              << R1 << std::endl;
     std::cout << "O1: " << O1.t() << std::endl;
 
     std::vector<cv::Vec3d> Xs;
@@ -591,7 +597,7 @@ TEST (SFM, Resection) {
     std::vector<cv::Vec2d> x1s;
 
     matrix34d Ps[2] = {P0, P1};
-    for (int i = 0; i < (int) good_matches_gms.size(); ++i) {
+    for (int i = 0; i < (int)good_matches_gms.size(); ++i) {
         vector3d ms[2] = {calib0.unproject(points1[i]), calib1.unproject(points2[i])};
         vector4d X = phg::triangulatePoint(Ps, ms, 2);
 
@@ -620,14 +626,14 @@ TEST (SFM, Resection) {
 
 namespace {
 
-    // one track corresponds to one 3d point
-    struct Track {
-        std::vector<std::pair<int, int>> img_kpt_pairs;
-    };
+// one track corresponds to one 3d point
+struct Track {
+    std::vector<std::pair<int, int>> img_kpt_pairs;
+};
 
 }
 
-TEST (SFM, ReconstructNViews) {
+TEST(SFM, ReconstructNViews) {
 
 #if !ENABLE_MY_SFM
     return;
@@ -656,7 +662,7 @@ TEST (SFM, ReconstructNViews) {
     std::vector<std::vector<int>> track_ids(n_imgs);
     std::vector<cv::Mat> descriptors(n_imgs);
     cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
-    for (int i = 0; i < (int) imgs.size(); ++i) {
+    for (int i = 0; i < (int)imgs.size(); ++i) {
         detector->detectAndCompute(imgs[i], cv::noArray(), keypoints[i], descriptors[i]);
         track_ids[i].resize(keypoints[i].size(), -1);
     }
@@ -674,9 +680,9 @@ TEST (SFM, ReconstructNViews) {
             std::vector<std::vector<DMatch>> knn_matches;
             std::cout << "flann matching..." << std::endl;
             Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-            matcher->knnMatch( descriptors[i], descriptors[j], knn_matches, 2 );
+            matcher->knnMatch(descriptors[i], descriptors[j], knn_matches, 2);
             std::vector<DMatch> good_matches(knn_matches.size());
-            for (int k = 0; k < (int) knn_matches.size(); ++k) {
+            for (int k = 0; k < (int)knn_matches.size(); ++k) {
                 good_matches[k] = knn_matches[k][0];
             }
 
@@ -722,7 +728,7 @@ TEST (SFM, ReconstructNViews) {
         aligned[1] = true;
 
         matrix34d Ps[2] = {P0, P1};
-        for (int i = 0; i < (int) good_matches_gms.size(); ++i) {
+        for (int i = 0; i < (int)good_matches_gms.size(); ++i) {
             vector3d ms[2] = {calib0.unproject(points0[i]), calib1.unproject(points1[i])};
             vector4d X = phg::triangulatePoint(Ps, ms, 2);
 
@@ -808,7 +814,7 @@ TEST (SFM, ReconstructNViews) {
     }
 
     std::vector<cv::Vec3b> tie_points_colors;
-    for (int i = 0; i < (int) tie_points.size(); ++i) {
+    for (int i = 0; i < (int)tie_points.size(); ++i) {
         const Track &track = tracks[i];
         int img = track.img_kpt_pairs.front().first;
         int kpt = track.img_kpt_pairs.front().second;
@@ -845,5 +851,4 @@ TEST (SFM, ReconstructNViews) {
 
     std::cout << "exporting " << tie_points.size() << " points..." << std::endl;
     phg::exportPointCloud(tie_points, "data/debug/test_sfm/point_cloud_N_cameras.ply", tie_points_colors);
-
 }
