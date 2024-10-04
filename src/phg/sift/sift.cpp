@@ -35,6 +35,8 @@
 #define DESCRIPTOR_SAMPLES_N 4         // 4x4 замера для каждой гистограммы дескриптора (всего гистограмм 4х4) итого 16х16 замеров
 #define DESCRIPTOR_SAMPLE_WINDOW_R 1.0 // минимальный радиус окна в рамках которого строится гистограмма из 8 корзин-направлений (т.е. для каждого из 16 элементов дескриптора), R=1 => 1x1 окно
 
+#define PARALLEL
+
 void phg::SIFT::detectAndCompute(const cv::Mat &originalImg, std::vector<cv::KeyPoint> &kps, cv::Mat &desc) {
     // используйте дебаг в файлы как можно больше, это очень удобно и потраченное время окупается крайне сильно,
     // ведь пролистывать через окошки показывающие картинки долго, и по ним нельзя проматывать назад, а по файлам - можно
@@ -87,7 +89,9 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
             gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES + layer] = img;
         }
 
+#ifdef PARALLEL
 #pragma omp parallel for
+#endif
         for (ptrdiff_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             double sigmaPrev = INITIAL_IMG_SIGMA * pow(2.0, octave);
             double sigmaCur = INITIAL_IMG_SIGMA * pow(2.0, octave) * pow(k, layer);
@@ -112,7 +116,9 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
     DoGPyramid.resize(NOCTAVES * OCTAVE_DOG_IMAGES);
 
 // строим пирамиду разниц гауссиан слоев (Difference of Gaussian, DoG), т.к. вычитать надо из слоя слой в рамках одной и той же октавы - то есть приятный параллелизм на уровне октав
+#ifdef PARALLEL
 #pragma omp parallel for
+#endif
     for (ptrdiff_t octave = 0; octave < NOCTAVES; ++octave) {
         for (size_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             int prevLayer = layer - 1;
@@ -168,7 +174,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
     std::vector<std::vector<float>> pointsDesc;
 
 // 3.1 Local extrema detection
+#ifdef PARALLEL
 #pragma omp parallel // запустили каждый вычислительный поток процессора
+#endif
     {
         // каждый поток будет складировать свои точки в свой личный вектор (чтобы не было гонок и не были нужны точки синхронизации)
         std::vector<cv::KeyPoint> thread_points;
@@ -183,7 +191,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                 const cv::Mat DoGs[3] = {prev, cur, next};
 
 // теперь каждый поток обработает свой кусок картинки
+#ifdef PARALLEL
 #pragma omp for
+#endif
                 for (ptrdiff_t j = 1; j < cur.rows - 1; ++j) {
                     for (ptrdiff_t i = 1; i + 1 < cur.cols; ++i) {
                         bool is_max = true;
@@ -268,7 +278,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
         }
 
 // в критической секции объединяем все массивы детектированных точек
+#ifdef PARALLEL
 #pragma omp critical
+#endif
         {
             keyPoints.insert(keyPoints.end(), thread_points.begin(), thread_points.end());
             pointsDesc.insert(pointsDesc.end(), thread_descriptors.begin(), thread_descriptors.end());
