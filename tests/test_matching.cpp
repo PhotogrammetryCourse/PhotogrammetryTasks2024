@@ -20,7 +20,7 @@
 
 // TODO enable both toggles for testing custom detector & matcher
 #define ENABLE_MY_DESCRIPTOR 0
-#define ENABLE_MY_MATCHING 0
+#define ENABLE_MY_MATCHING 1
 #define ENABLE_GPU_BRUTEFORCE_MATCHER 0
 
 #if ENABLE_MY_MATCHING
@@ -48,13 +48,14 @@ namespace {
                      cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
         cv::imwrite(path, img_matches);
+        char buf[250];
     }
 
     cv::Mat getHomography(const cv::Mat &img1, const cv::Mat &img2)
     {
         using namespace cv;
 
-        cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
+        Ptr<FeatureDetector> detector = SIFT::create();
         std::vector<KeyPoint> keypoints1, keypoints2;
         Mat descriptors1, descriptors2;
         detector->detectAndCompute( img1, noArray(), keypoints1, descriptors1 );

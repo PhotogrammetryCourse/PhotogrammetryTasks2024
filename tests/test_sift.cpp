@@ -70,7 +70,7 @@ double diffAngles(double angle0, double angle1) {
 // На вход передается матрица описывающая преобразование картинки (сдвиг, поворот, масштабирование или их комбинация), допустимый процент Recall, и опционально можно тестировать другую картинку
 void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat()) {
     if (img0.empty()) {
-        img0 = cv::imread("data/src/test_sift/unicorn.png"); // грузим картинку по умолчанию
+        img0 = cv::imread("data/src/test_sift/unicorn.png"); // гbuildрузим картинку по умолчанию
     }
 
     ASSERT_FALSE(img0.empty()); // проверка что картинка была загружена
@@ -118,13 +118,11 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
                 detector->compute(img0, kps0, desc0);
                 detector->compute(img1, kps1, desc1);
             } else if (method == 2) {
-                // TODO remove 'return' and uncomment
-                return;
-//                method_name = "SIFT_MY";
-//                log_prefix = "[SIFT_MY] ";
-//                phg::SIFT mySIFT;
-//                mySIFT.detectAndCompute(img0, kps0, desc0);
-//                mySIFT.detectAndCompute(img1, kps1, desc1);
+                method_name = "SIFT_MY";
+                log_prefix = "[SIFT_MY] ";
+                phg::SIFT mySIFT;
+                mySIFT.detectAndCompute(img0, kps0, desc0);
+                mySIFT.detectAndCompute(img1, kps1, desc1);
             } else {
                 rassert(false, 13532513412); // это не проверка как часть тестирования, это проверка что число итераций в цикле и if-else ветки все еще согласованы и не разошлись
             }

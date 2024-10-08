@@ -12,8 +12,7 @@
  * */
 cv::Mat phg::stitchPanorama(const std::vector<cv::Mat> &imgs,
                             const std::vector<int> &parent,
-                            std::function<cv::Mat(const cv::Mat &, const cv::Mat &)> &homography_builder)
-{
+                            std::function<cv::Mat(const cv::Mat &, const cv::Mat &)> &homography_builder) {
     const int n_images = imgs.size();
 
     // склеивание панорамы происходит через приклеивание всех картинок к корню, некоторые приклеиваются не напрямую, а через цепочку других картинок
@@ -23,68 +22,81 @@ cv::Mat phg::stitchPanorama(const std::vector<cv::Mat> &imgs,
     {
         // здесь надо посчитать вектор Hs
         // при этом можно обойтись n_images - 1 вызовами функтора homography_builder
-        throw std::runtime_error("not implemented yet");
-    }
-
-    bbox2<double, cv::Point2d> bbox;
-    for (int i = 0; i < n_images; ++i) {
-        double w = imgs[i].cols;
-        double h = imgs[i].rows;
-        bbox.grow(phg::transformPoint(cv::Point2d(0.0, 0.0), Hs[i]));
-        bbox.grow(phg::transformPoint(cv::Point2d(w, 0.0), Hs[i]));
-        bbox.grow(phg::transformPoint(cv::Point2d(w, h), Hs[i]));
-        bbox.grow(phg::transformPoint(cv::Point2d(0, h), Hs[i]));
-    }
-
-    std::cout << "bbox: " << bbox.max() << ", " << bbox.min() << std::endl;
-
-    int result_width = bbox.width() + 1;
-    int result_height = bbox.height() + 1;
-
-    cv::Mat result = cv::Mat::zeros(result_height, result_width, CV_8UC3);
-
-    // из-за растяжения пикселей при использовании прямой матрицы гомографии после отображения между пикселями остается пустое пространство
-    // лучше использовать обратную и для каждого пикселя на итоговвой картинке проверять, с какой картинки он может получить цвет
-    // тогда в некоторых пикселях цвет будет дублироваться, но изображение будет непрерывным
-//        for (int i = 0; i < n_images; ++i) {
-//            for (int y = 0; y < imgs[i].rows; ++y) {
-//                for (int x = 0; x < imgs[i].cols; ++x) {
-//                    cv::Vec3b color = imgs[i].at<cv::Vec3b>(y, x);
-//
-//                    cv::Point2d pt_dst = applyH(cv::Point2d(x, y), Hs[i]) - bbox.min();
-//                    int y_dst = std::max(0, std::min((int) std::round(pt_dst.y), result_height - 1));
-//                    int x_dst = std::max(0, std::min((int) std::round(pt_dst.x), result_width - 1));
-//
-//                    result.at<cv::Vec3b>(y_dst, x_dst) = color;
-//                }
-//            }
-//        }
-
-    std::vector<cv::Mat> Hs_inv;
-    std::transform(Hs.begin(), Hs.end(), std::back_inserter(Hs_inv), [&](const cv::Mat &H){ return H.inv(); });
-
-#pragma omp parallel for
-    for (int y = 0; y < result_height; ++y) {
-        for (int x = 0; x < result_width; ++x) {
-
-            cv::Point2d pt_dst(x, y);
-
-            // test all images, pick first
-            for (int i = 0; i < n_images; ++i) {
-
-                cv::Point2d pt_src = phg::transformPoint(pt_dst + bbox.min(), Hs_inv[i]);
-
-                int x_src = std::round(pt_src.x);
-                int y_src = std::round(pt_src.y);
-
-                if (x_src >= 0 && x_src < imgs[i].cols && y_src >= 0 && y_src < imgs[i].rows) {
-                    result.at<cv::Vec3b>(y, x) = imgs[i].at<cv::Vec3b>(y_src, x_src);
-                    break;
-                }
+        std::vector<bool> stitched(n_images, false);
+        std::vector<int> img_order;
+        for (int i = 0; i < n_images; ++i) {
+            std::vector<int> cur_img_parents;
+            int cur = i;
+            while (cur != -1 && !stitched[cur]) {
+                cur_img_parents.push_back(cur);
+                stitched[cur] = true;
+                cur = parent[cur];
             }
-
+            img_order.insert(img_order.end(), cur_img_parents.rbegin(), cur_img_parents.rend());
+        }
+        Hs[img_order[0]] = cv::Mat::eye(3, 3, CV_64F);
+        for (int i = 1; i < n_images; ++i) {
+            Hs[img_order[i]] = Hs[parent[img_order[i]]] * homography_builder(
+                                   imgs[img_order[i]], imgs[parent[img_order[i]]]);
         }
     }
 
-    return result;
-}
+        bbox2<double, cv::Point2d> bbox;
+        for (int i = 0; i < n_images; ++i) {
+            double w = imgs[i].cols;
+            double h = imgs[i].rows;
+            bbox.grow(phg::transformPoint(cv::Point2d(0.0, 0.0), Hs[i]));
+            bbox.grow(phg::transformPoint(cv::Point2d(w, 0.0), Hs[i]));
+            bbox.grow(phg::transformPoint(cv::Point2d(w, h), Hs[i]));
+            bbox.grow(phg::transformPoint(cv::Point2d(0, h), Hs[i]));
+        }
+
+        std::cout << "bbox: " << bbox.max() << ", " << bbox.min() << std::endl;
+
+        int result_width = bbox.width() + 1;
+        int result_height = bbox.height() + 1;
+
+        cv::Mat result = cv::Mat::zeros(result_height, result_width, CV_8UC3);
+
+        // из-за растяжения пикселей при использовании прямой матрицы гомографии после отображения между пикселями остается пустое пространство
+        // лучше использовать обратную и для каждого пикселя на итоговвой картинке проверять, с какой картинки он может получить цвет
+        // тогда в некоторых пикселях цвет будет дублироваться, но изображение будет непрерывным
+        for (int i = 0; i < n_images; ++i) {
+            for (int y = 0; y < imgs[i].rows; ++y) {
+                for (int x = 0; x < imgs[i].cols; ++x) {
+                    cv::Vec3b color = imgs[i].at<cv::Vec3b>(y, x);
+
+                    cv::Point2d pt_dst = transformPoint(cv::Point2d(x, y), Hs[i]) - bbox.min();
+                    int y_dst = std::max(0, std::min((int) std::round(pt_dst.y), result_height - 1));
+                    int x_dst = std::max(0, std::min((int) std::round(pt_dst.x), result_width - 1));
+
+                    result.at<cv::Vec3b>(y_dst, x_dst) = color;
+                }
+            }
+        }
+
+        std::vector<cv::Mat> Hs_inv;
+        std::transform(Hs.begin(), Hs.end(), std::back_inserter(Hs_inv), [&](const cv::Mat &H) { return H.inv(); });
+
+#pragma omp parallel for
+        for (int y = 0; y < result_height; ++y) {
+            for (int x = 0; x < result_width; ++x) {
+                cv::Point2d pt_dst(x, y);
+
+                // test all images, pick first
+                for (int i = 0; i < n_images; ++i) {
+                    cv::Point2d pt_src = phg::transformPoint(pt_dst + bbox.min(), Hs_inv[i]);
+
+                    int x_src = std::round(pt_src.x);
+                    int y_src = std::round(pt_src.y);
+
+                    if (x_src >= 0 && x_src < imgs[i].cols && y_src >= 0 && y_src < imgs[i].rows) {
+                        result.at<cv::Vec3b>(y, x) = imgs[i].at<cv::Vec3b>(y_src, x_src);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
