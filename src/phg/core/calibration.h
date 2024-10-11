@@ -16,6 +16,9 @@ namespace phg {
         int width() const;
         int height() const;
 
+        double r(const cv::Vec2d &pixel) const;
+        double distorsionCoef(const double r) const;
+
         double f_;
         double cx_;
         double cy_;
