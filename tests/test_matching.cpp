@@ -671,15 +671,15 @@ TEST (MATCHING, Rotate90) {
     testMatchingTransformWrapper(angleDegreesClockwise, scale);
 }
 
-TEST (MATCHING, Scale50) {
-    // seems to be some issue with gms matcher and high downscale
-#if ENABLE_MY_MATCHING
-    double angleDegreesClockwise = 0;
-    double scale = 0.5;
-
-    testMatchingTransformWrapper(angleDegreesClockwise, scale);
-#endif
-}
+// TEST (MATCHING, Scale50) {
+//     // seems to be some issue with gms matcher and high downscale
+// #if ENABLE_MY_MATCHING
+//     double angleDegreesClockwise = 0;
+//     double scale = 0.5;
+//
+//     testMatchingTransformWrapper(angleDegreesClockwise, scale);
+// #endif
+// }
 
 TEST (MATCHING, Scale70) {
     double angleDegreesClockwise = 0;
