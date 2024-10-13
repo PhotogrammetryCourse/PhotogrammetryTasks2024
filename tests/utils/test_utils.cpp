@@ -9,15 +9,14 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include <libutils/timer.h>
 #include <libutils/rasserts.h>
+#include <libutils/timer.h>
 
-#include <phg/sfm/ematrix.h>
-#include <phg/mvs/depth_maps/pm_geometry.h>
 #include <phg/mvs/depth_maps/pm_depth_maps.h>
-#include <phg/utils/point_cloud_export.h>
+#include <phg/mvs/depth_maps/pm_geometry.h>
+#include <phg/sfm/ematrix.h>
 #include <phg/utils/cameras_bundler_import.h>
-
+#include <phg/utils/point_cloud_export.h>
 
 cv::Mat concatenateImagesLeftRight(const cv::Mat &img0, const cv::Mat &img1) {
     // это способ гарантировать себе что предположение которое явно в этой функции есть (совпадение типов картинок)
@@ -41,11 +40,9 @@ cv::Mat concatenateImagesLeftRight(const cv::Mat &img0, const cv::Mat &img1) {
     return res;
 }
 
-
 std::string getTestName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->name();
 }
-
 
 std::string getTestSuiteName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name();
@@ -56,11 +53,10 @@ void drawMatches(const cv::Mat &img1,
                  const std::vector<cv::KeyPoint> &keypoints1,
                  const std::vector<cv::KeyPoint> &keypoints2,
                  const std::vector<cv::DMatch> &matches,
-                 const std::string &path)
-{
+                 const std::string &path) {
     cv::Mat img_matches;
-    drawMatches( img1, keypoints1, img2, keypoints2, matches, img_matches, cv::Scalar::all(-1),
-                 cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+    drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches, cv::Scalar::all(-1),
+                cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
     cv::imwrite(path, img_matches);
 }
@@ -73,14 +69,13 @@ void generateTiePointsCloud(const std::vector<vector3d> &tie_points,
                             const std::vector<matrix34d> &cameras,
                             int ncameras,
                             std::vector<vector3d> &tie_points_and_cameras,
-                            std::vector<cv::Vec3b> &tie_points_colors)
-{
+                            std::vector<cv::Vec3b> &tie_points_colors) {
     rassert(tie_points.size() == tracks.size(), 24152151251241);
 
     tie_points_and_cameras.clear();
     tie_points_colors.clear();
 
-    for (int i = 0; i < (int) tie_points.size(); ++i) {
+    for (int i = 0; i < (int)tie_points.size(); ++i) {
         const phg::Track &track = tracks[i];
         if (track.disabled)
             continue;
@@ -108,8 +103,7 @@ void generateTiePointsCloud(const std::vector<vector3d> &tie_points,
     }
 }
 
-Dataset Dataset::subset(size_t from, size_t to) const
-{
+Dataset Dataset::subset(size_t from, size_t to) const {
     Dataset res = *this;
 
     rassert(from < to, 23481294812944);
@@ -131,8 +125,7 @@ Dataset Dataset::subset(size_t from, size_t to) const
     return res;
 }
 
-Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale)
-{
+Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale) {
     timer t;
 
     Dataset dataset;
@@ -168,7 +161,7 @@ Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale)
             dataset.calibration.height_ = img.rows;
             std::cout << "resolution: " << img.cols << "x" << img.rows << std::endl;
         } else {
-            rassert(dataset.calibration.width_  == img.cols, 2931924190089);
+            rassert(dataset.calibration.width_ == img.cols, 2931924190089);
             rassert(dataset.calibration.height_ == img.rows, 2931924190090);
         }
 
@@ -185,7 +178,7 @@ Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale)
 
     dataset.cameras_depth_max.resize(dataset.ncameras);
     dataset.cameras_depth_min.resize(dataset.ncameras);
-    #pragma omp parallel for schedule(dynamic, 1)
+#pragma omp parallel for schedule(dynamic, 1)
     for (ptrdiff_t ci = 0; ci < dataset.ncameras; ++ci) {
         double depth_min = std::numeric_limits<double>::max();
         double depth_max = 0.0;
@@ -224,7 +217,7 @@ Dataset loadDataset(const std::string &dataset_dir_name, int dataset_downscale)
         // имеет смысл расширить диапазон глубины, т.к. ключевые точки по которым он построен - лишь ориентир
         double depth_range = depth_max - depth_min;
         depth_min = std::max(depth_min - 0.25 * depth_range, depth_min / 2.0);
-        depth_max =          depth_max + 0.25 * depth_range;
+        depth_max = depth_max + 10.0 * depth_range;
 
         rassert(depth_min > 0.0, 2314512515210146);
         rassert(depth_min < depth_max, 23198129410137);
