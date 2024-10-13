@@ -64,17 +64,22 @@ namespace {
     // Нужно создать матрицу преобразования, которая сдвинет переданное множество точек так, что центр масс перейдет в ноль, а Root Mean Square расстояние до него станет sqrt(2)
     // (см. Hartley & Zisserman p.107 Why is normalization essential?)
     cv::Matx33d getNormalizeTransform(const std::vector<cv::Vec2d> &m) {
-        cv::Vec2d d = (0, 0);
-        double scale = 0;
+        cv::Vec2d d;
+        cv::Vec2d invSize(1 / static_cast<double>(m.size()), 1 / static_cast<double>(m.size()));
         for (const cv::Vec2d p: m) {
             d += p;
         }
-        d = -d / (double) m.size();
+        d = d.mul(invSize);
+        cv::Vec2d scale = (0, 0);
         for (const cv::Vec2d p: m) {
-            scale += (p + d).dot(p + d);
+            scale += (p - d).mul(p - d);
         }
-        scale = std::sqrt(static_cast<double>(m.size())) / std::sqrt(scale);
-        const cv::Matx33d res(scale, 0, d[0] * scale, 0, scale, d[1] * scale, 0, 0, 1.0);
+        scale = scale.mul(invSize);
+        sqrt(scale, scale);
+        const cv::Matx33d res(
+            1 / scale[0], 0, d[0] / scale[0],
+            0, 1 / scale[1], d[1] / scale[1],
+            0, 0, 1.0);
         return res;
     }
 
@@ -106,12 +111,12 @@ namespace {
             m1_t[i] = transformPoint(m1[i], TN1);
         } {
             //             Проверьте лог: при повторной нормализации должно найтись почти единичное преобразование
-            getNormalizeTransform(m0_t);
-            getNormalizeTransform(m1_t);
+            // getNormalizeTransform(m0_t);
+            // getNormalizeTransform(m1_t);
         }
         // https://en.wikipedia.org/wiki/Random_sample_consensus#Parameters
         // будет отличаться от случая с гомографией
-        const int n_trials = 100000;
+        const int n_trials = 40000;
 
         const int n_samples = 8;
         uint64_t seed = 1;
@@ -135,8 +140,8 @@ namespace {
             F = TN1.t() * F * TN0;
             int support = 0;
             for (int i = 0; i < n_matches; ++i) {
-                if (phg::epipolarTest(m0[i], m1[i], F, threshold_px) //&&
-                    // phg::epipolarTest(m1[i], m0[i], F, threshold_px)
+                if (phg::epipolarTest(m0[i], m1[i], F, threshold_px) &&
+                    phg::epipolarTest(m1[i], m0[i], F.t(), threshold_px)
                 ) {
                     ++support;
                 }
