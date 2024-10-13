@@ -19,12 +19,18 @@
 
 #define SHOW_RESULTS                0   // если вам хочется сразу видеть результат в окошке - переключите в 1, но не забудьте выключить перед коммитом (иначе бот в CI будет ждать веками)
 
+
 #define MAX_ACCEPTED_PIXEL_ERROR    0.01 // максимальное расстояние в пикселях (процент от ширины картинки) между ключевыми точками чтобы их можно было зачесть как "почти совпавшие" (это очень завышенный порог, по-хорошему должно быть 0.5 например)
+
 
 #define MAX_AVG_PIXEL_ERROR         0.075
 
 #define GAUSSIAN_NOISE_STDDEV       1.0
 
+#define DUMP_LOGS 1
+#ifndef USE_OMP
+#define USE_OMP 1
+#endif
 
 // функция рисует кружки случайного цвета вокруг точек, но если для точки не нашлось сопоставления - кружок будет толстый и ярко красный
 void drawKeyPoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kps,
@@ -135,10 +141,10 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0 = cv::Ma
                 rassert(false, 13532513412);
                 // это не проверка как часть тестирования, это проверка что число итераций в цикле и if-else ветки все еще согласованы и не разошлись
             }
-
+#if DUMP_LOGS
             std::cout << log_prefix << "Points detected: " << kps0.size() << " -> " << kps1.size() << " (in " << t.
                     elapsed() << " sec)" << std::endl;
-
+#endif
             std::vector<cv::Point2f> ps01(kps0.size());
             // давайте построим эталон - найдем куда бы должны были сместиться ключевые точки с исходного изображения с учетом нашей матрицы трансформации M
             {
@@ -172,7 +178,9 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0 = cv::Ma
             // эта прагма - способ распараллелить цикл на все ядра процессора (см. OpenMP parallel for)
             // reduction позволяет сказать OpenMP что нужно провести редукцию суммированием для каждой из переменных: error_sum, n_matched, n_in_bounds, ...
             // мы ведь хотим найти сумму по всем потокам
+#if USE_OMP
 #pragma omp parallel for reduction(+:error_sum, n_matched, n_in_bounds, size_ratio_sum, angle_diff_sum, desc_dist_sum, desc_rand_dist_sum)
+#endif
             for (ptrdiff_t i = 0; i < kps0.size(); ++i) {
                 cv::Point2f p01 = ps01[i]; // взяли ожидаемую координату куда должна была перейти точка
                 if (p01.x > 0 && p01.x < width && p01.y > 0 && p01.y < height) {
@@ -242,6 +250,7 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0 = cv::Ma
             // это не проверка как часть тестирования, это проверка что я не набагал и что дальше не будет деления на ноль :)
             double recall = n_matched * 1.0 / n_in_bounds;
             double avg_error = error_sum / n_matched;
+#ifdef DUMP_LOGS
             std::cout << log_prefix << n_matched << "/" << n_in_bounds << " (recall=" << recall <<
                     ") with average error=" << avg_error << std::endl;
             std::cout << log_prefix << "average size ratio between matched points: " << (size_ratio_sum / n_matched) <<
@@ -256,7 +265,7 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0 = cv::Ma
                             desc_dist_sum / n_matched) << " (random distance: " << (desc_rand_dist_sum / n_matched) <<
                         ") => differentiability=" << (desc_dist_sum / desc_rand_dist_sum) << std::endl;
             }
-
+#endif
             // а вот это проверка качества, самая важная часть теста, проверяем насколько часто одни и те же характерные точки детектируются
             // несмотря на несущественное искажение изображения
             // т.е. мы по сути проверяем что "ключевые точки детектируются инвариантно к смещению, повороту и масштабу"
