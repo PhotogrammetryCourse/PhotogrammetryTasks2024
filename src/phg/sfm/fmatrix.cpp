@@ -51,11 +51,13 @@ namespace {
         //      Поправить F так, чтобы соблюдалось свойство фундаментальной матрицы (последнее сингулярное значение = 0)
         Eigen::JacobiSVD<Eigen::MatrixXd> svdf(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
         auto singularValues = svdf.singularValues();
-        auto D = Eigen::Vector3d({singularValues[0], singularValues[1], 0}).asDiagonal();
+        Eigen::Matrix3d D = Eigen::Matrix3d::Zero();
+        D(0, 0) = singularValues[0];
+        D(1, 1) = singularValues[1];
         Eigen::Matrix3d f = svdf.matrixU() * D * svdf.matrixV().transpose();
         cv::Matx33d Fcv;
         copy(f, Fcv);
-        //
+
         return Fcv;
     }
 
@@ -109,7 +111,7 @@ namespace {
         }
         // https://en.wikipedia.org/wiki/Random_sample_consensus#Parameters
         // будет отличаться от случая с гомографией
-        const int n_trials = 40000;
+        const int n_trials = 100000;
 
         const int n_samples = 8;
         uint64_t seed = 1;
@@ -135,7 +137,7 @@ namespace {
             for (int i = 0; i < n_matches; ++i) {
                 if (phg::epipolarTest(m0[i], m1[i], F, threshold_px) //&&
                     // phg::epipolarTest(m1[i], m0[i], F, threshold_px)
-                    ) {
+                ) {
                     ++support;
                 }
             }
