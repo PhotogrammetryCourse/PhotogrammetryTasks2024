@@ -6,7 +6,7 @@
 void phg::DescriptorMatcher::filterMatchesRatioTest(const std::vector<std::vector<cv::DMatch> > &matches,
                                                     std::vector<cv::DMatch> &filtered_matches) {
     filtered_matches.clear();
-    float c = 0.7;
+    float c = 0.6;
     for (auto match: matches) {
         if (match[0].distance <= c * match[1].distance) {
             filtered_matches.push_back(match[0]);
@@ -40,7 +40,7 @@ void phg::DescriptorMatcher::filterMatchesClusters(const std::vector<cv::DMatch>
 
     // размерность всего 2, так что точное KD-дерево
     std::shared_ptr<cv::flann::IndexParams> index_params = flannKdTreeIndexParams(1);
-    std::shared_ptr<cv::flann::SearchParams> search_params = flannKsTreeSearchParams(35);
+    std::shared_ptr<cv::flann::SearchParams> search_params = flannKsTreeSearchParams(n_matches);
 
     std::shared_ptr<cv::flann::Index> index_query = flannKdTreeIndex(points_query, index_params);
     std::shared_ptr<cv::flann::Index> index_train = flannKdTreeIndex(points_train, index_params);
