@@ -14,7 +14,7 @@
 // 3) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.dispatch.cpp (адаптация кода с первой ссылки)
 // 4) https://github.com/opencv/opencv/blob/1834eed8098aa2c595f4d1099eeaa0992ce8b321/modules/features2d/src/sift.simd.hpp (адаптация кода с первой ссылки)
 
-#define DEBUG_ENABLE     1
+#define DEBUG_ENABLE     0
 #define DEBUG_PATH       std::string("data/debug/test_sift/debug/")
 
 #define NOCTAVES                    3                    // число октав
@@ -27,7 +27,7 @@
 #define INITIAL_IMG_SIGMA           0.75                 // предполагаемая степень размытия изначальной картинки
 #define INPUT_IMG_PRE_BLUR_SIGMA    1.0                  // сглаживание изначальной картинки
 
-#define SUBPIXEL_FITTING_ENABLE      0    // такие тумблеры включающие/выключающие очередное улучшение алгоритма позволяют оценить какой вклад эта фича вносит в качество результата если в рамках уже готового алгоритма попробовать ее включить/выключить
+#define SUBPIXEL_FITTING_ENABLE      1    // такие тумблеры включающие/выключающие очередное улучшение алгоритма позволяют оценить какой вклад эта фича вносит в качество результата если в рамках уже готового алгоритма попробовать ее включить/выключить
 
 
 
@@ -52,6 +52,8 @@
 #define DESCRIPTOR_SAMPLE_WINDOW_R 1.0 // минимальный радиус окна в рамках которого строится гистограмма из 8 корзин-направлений (т.е. для каждого из 16 элементов дескриптора), R=1 => 1x1 окно
 
 
+
+#define USE_OMP 1
 
 void phg::SIFT::detectAndCompute(const cv::Mat &originalImg, std::vector<cv::KeyPoint> &kps, cv::Mat &desc) {
     // используйте дебаг в файлы как можно больше, это очень удобно и потраченное время окупается крайне сильно,
@@ -99,18 +101,14 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
             int layer = 0;
             size_t prevOctave = octave - 1;
             // берем картинку с предыдущей октавы и уменьшаем ее в два раза без какого бы то ни было дополнительного размытия (сигмы должны совпадать)
-            // TODO 1
             cv::Mat img = gaussianPyramid[prevOctave * OCTAVE_GAUSSIAN_IMAGES].clone();
             // тут есть очень важный момент, мы должны указать fx=0.5, fy=0.5 иначе при нечетном размере картинка будет не идеально 2 пикселя в один схлопываться - а слегка смещаться
-            // TODO 2
             cv::resize(img, img, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
             gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES + layer] = img;
         }
-
+#if USE_OMP
 #pragma omp parallel for
-
-
-
+#endif
         for (ptrdiff_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             size_t prevLayer = layer - 1;
 
@@ -151,15 +149,15 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
                     DEBUG_PATH + "pyramid/o" + to_string(octave) + "_l" + to_string(layer) + "_s" + to_string(sigmaCur)
                     +
                     ".png", gaussianPyramid[octave * OCTAVE_GAUSSIAN_IMAGES + layer]);
-            // TODO: какие ожидания от картинок можно придумать? т.е. как дополнительно проверить что работает разумно?
-            // спойлер: подуймайте с чем должна визуально совпадать картинка из октавы? может быть с какой-то из картинок с предыдущей октавы? с какой? как их визуально сверить ведь они разного размера?
         }
     }
 
     DoGPyramid.resize(NOCTAVES * OCTAVE_DOG_IMAGES);
 
     // строим пирамиду разниц гауссиан слоев (Difference of Gaussian, DoG), т.к. вычитать надо из слоя слой в рамках одной и той же октавы - то есть приятный параллелизм на уровне октав
+#if USE_OMP
 #pragma omp parallel for
+#endif
     for (ptrdiff_t octave = 0; octave < NOCTAVES; ++octave) {
         for (size_t layer = 1; layer < OCTAVE_GAUSSIAN_IMAGES; ++layer) {
             int prevLayer = layer - 1;
@@ -191,8 +189,6 @@ void phg::SIFT::buildPyramids(const cv::Mat &imgOrg, std::vector<cv::Mat> &gauss
                     DEBUG_PATH + "pyramidDoG/o" + to_string(octave) + "_l" + to_string(layer) + "_s" + to_string(
                         sigmaCur) +
                     ".png", DoGPyramid[octave * OCTAVE_DOG_IMAGES + layer]);
-            // TODO: какие ожидания от картинок можно придумать? т.е. как дополнительно проверить что работает разумно?
-            // спойлер: подуймайте с чем должна визуально совпадать картинка из октавы DoG? может быть с какой-то из картинок с предыдущей октавы? с какой? как их визуально сверить ведь они разного размера?
         }
     }
 }
@@ -225,7 +221,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
     std::vector<std::vector<float> > pointsDesc;
 
     // 3.1 Local extrema detection
+#if USE_OMP
 #pragma omp parallel // запустили каждый вычислительный поток процессора
+#endif
     {
         // каждый поток будет складировать свои точки в свой личный вектор (чтобы не было гонок и не были нужны точки синхронизации)
         std::vector<cv::KeyPoint> thread_points;
@@ -240,7 +238,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                 const cv::Mat DoGs[3] = {prev, cur, next};
 
                 // теперь каждый поток обработает свой кусок картинки
+#if USE_OMP
 #pragma omp for
+#endif
                 for (ptrdiff_t j = 1; j < cur.rows - 1; ++j) {
                     for (ptrdiff_t i = 1; i < cur.cols - 1; ++i) {
                         bool is_max = true;
@@ -271,10 +271,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
                         float dy = 0.0f;
                         float dvalue = 0.0f;
 #if SUBPIXEL_FITTING_ENABLE // такие тумблеры включающие/выключающие очередное улучшение алгоритма позволяют оценить какой вклад эта фича вносит в качество результата если в рамках уже готового алгоритма попробовать ее включить/выключить
-
-
                         {
-                            // TODO сделать субпиксельное уточнение (хотя бы через параболу-фиттинг независимо по оси X и оси Y, но лучше через честный ряд Тейлора, матрицу Гессе и итеративное смещение если экстремум оказался в соседнем пикселе)
+                            dx = parabolaFitting(cur.at<float>(j, i - 1), cur.at<float>(j, i), cur.at<float>(j, i + 1));
+                            dy = parabolaFitting(cur.at<float>(j - 1, i), cur.at<float>(j, i), cur.at<float>(j + 1, i));
                         }
 #endif
                         float contrast = center + dvalue;
@@ -323,7 +322,9 @@ void phg::SIFT::findLocalExtremasAndDescribe(const std::vector<cv::Mat> &gaussia
         }
 
         // в критической секции объединяем все массивы детектированных точек
+#ifdef USE_OMP
 #pragma omp critical
+#endif
         {
             keyPoints.insert(keyPoints.end(), thread_points.begin(), thread_points.end());
             pointsDesc.insert(pointsDesc.end(), thread_descriptors.begin(), thread_descriptors.end());
@@ -417,8 +418,6 @@ bool phg::SIFT::buildDescriptor(const cv::Mat &img, float px, float py, double d
                             float orientation = atan2(dy, dx) * (180.0 / M_PI) + 90.0 - angle;
                             while (orientation < 0.0) orientation += 360.0;
                             while (orientation >= 360.0) orientation -= 360.0;
-
-                            // TODO за счет чего этот вклад будет сравниваться с этим же вкладом даже если эта картинка будет повернута? что нужно сделать с ориентацией каждого градиента из окрестности этой ключевой точки?
 
                             rassert(orientation >= 0.0 && orientation < 360.0, dy);
                             static_assert(360 % DESCRIPTOR_NBINS == 0, "Inappropriate bins number!");
